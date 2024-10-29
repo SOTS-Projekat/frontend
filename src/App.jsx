@@ -1,25 +1,44 @@
 import "./App.css";
 import LoginForm from "./Components/LoginForm/LoginForm";
-import { RouterProvider, createHashRouter } from "react-router-dom";
+import { RouterProvider, createHashRouter, Navigate } from "react-router-dom";
 import Layout from "./layout/Layout";
+import RegisterForm from "./Components/RegisterForm/RegisterForm";
+import ProtectedRoute from "./Components/Navigation/ProtectedRoute";
+import HomePage from "./Components/HomePage/HomePage";
 
 function App() {
+
+  const isAuthenticated = !!localStorage.getItem('token');
+  
   const router = createHashRouter([
     {
       path: "/",
-      element: <LoginForm />,
+      element: isAuthenticated ? <Navigate to="/home" /> : <LoginForm />,
+    },
+    {
+      path: "/register",
+      element: <RegisterForm />,
     },
     {
       path: "/home",
-      element: <Layout />,
+      element: (
+      <ProtectedRoute>
+        <Layout />
+      </ProtectedRoute>
+      ),
       children: [
         {
           path: "",
-          element: <h1>Home</h1>,
+          element: (
+            <>
+              <HomePage></HomePage>
+            </>
+          ),
         },
       ],
     },
   ]);
+
   return (
     <div>
       <RouterProvider router={router} />

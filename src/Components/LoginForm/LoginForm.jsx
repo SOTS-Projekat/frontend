@@ -1,25 +1,27 @@
 import React, { useState } from "react"
 import './LoginForm.css';
 import { FaUser, FaLock } from "react-icons/fa";
-import LoginService from "./Services/LoginService";
+import AuthenticationService from '../Services/AuthenticationService';
+import { useNavigate, Link } from "react-router-dom";
 
 const LoginForm = () => {
     
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState(null);
+    const navigate = useNavigate();
 
     const handleLogin = async (e) => {
         e.preventDefault();
         setError(null); 
 
         try {
-            const token = await LoginService.login(username, password);
+            const token = await AuthenticationService.login(username, password);
             console.log("Login successful, token:", token);
             localStorage.setItem('token', token);
-
             setUsername("");
             setPassword("");
+            navigate('/home');
         } catch (err) {
             setError(err.message); // Display the error message to the user
         }
@@ -44,7 +46,7 @@ const LoginForm = () => {
                 {error && <p className="error-message">{error}</p>}
 
                 <div className="register-link">
-                    <p>Don't have an account? <a href="#">Register</a></p>
+                    <p>Don't have an account? <Link to="/#/register">Register</Link></p>
                 </div>
             </form>
             
