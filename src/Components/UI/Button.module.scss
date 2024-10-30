@@ -1,0 +1,40 @@
+.button-container {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.6rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+
+  &:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  &:focus {
+    outline: none;
+  }
+}
+
+.create-button {
+  background-color: rgba(50, 88, 123, 255);
+  color: #fff;
+
+  &:hover {
+    background-color: rgba(50, 88, 110, 255);
+  }
+}
+
+.cancel-button {
+  background-color: rgb(138, 138, 138);
+  color: #fff;
+
+  &:hover {
+    background-color: rgb(132, 132, 132);
+  }
+}

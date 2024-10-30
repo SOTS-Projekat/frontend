@@ -1,0 +1,62 @@
+.questionContainer {
+  position: relative;
+  border: 1px solid #ddd;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  background-color: #f9f9f9;
+}
+
+h3 {
+  font-size: 1.6rem;
+  margin-bottom: 0.5rem;
+  width: 95%;
+  overflow-wrap: break-word;
+  white-space: normal;
+}
+
+.answersList {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.answerItem {
+  padding: 0.5rem;
+  border-bottom: 1px solid #eee;
+  font-size: 1.4rem;
+  display: flex;
+  align-items: center;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.correctAnswer {
+  color: #2b8a3e;
+  font-weight: bold;
+}
+
+.correctLabel {
+  margin-left: 0.5rem;
+  color: #2b8a3e;
+  font-weight: bold;
+}
+
+.delete-button {
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  background-color: #ff4d4f; // Crvena boja za brisanje
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+
+  &:hover {
+    background-color: #ff7875; // Svjetlija crvena pri hover-u
+  }
+}

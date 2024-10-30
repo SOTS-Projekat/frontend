@@ -27,26 +27,26 @@
     align-items: center;
     justify-content: flex-end;
     width: calc((100% / 2) - 15%);
+  }
 
-    .logoutButton {
-      background: none;
-      border: none;
-      color: #fff; /* Ili boja po izboru */
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 8px;
-      transition: color 0.3s ease;
+  .logoutButton {
+    background: none;
+    border: none;
+    color: #fff; /* Ili boja po izboru */
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    transition: color 0.3s ease;
 
-      &:hover {
-        color: #ff4c4c; /* Promjena boje na hover */
-      }
+    &:hover {
+      color: #ff4c4c; /* Promjena boje na hover */
     }
   }
 
   .nav {
-    width: 25%;
+    width: 40%;
     height: 5rem;
     ul {
       position: relative;
@@ -65,10 +65,10 @@
         font-size: 1.7rem;
         padding: 1.6rem 1rem;
         z-index: 2;
-        width: calc(100% / 1);
+        width: calc(100% / 2);
 
         &:nth-child(2).active ~ div {
-          left: calc(100% / 1);
+          left: calc(100% / 2);
         }
 
         &:hover::before {
@@ -92,7 +92,7 @@
         top: 0;
         left: 0;
         height: 5rem;
-        width: calc(100% / 1);
+        width: calc(100% / 2);
         transition: all 0.5s ease;
         display: flex;
         justify-content: flex-start;

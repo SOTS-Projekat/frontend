@@ -7,7 +7,7 @@ export default function Navigation() {
 
   const handleLogout = () => {
     localStorage.setItem("session", JSON.stringify(""));
-    localStorage.removeItem('token'); // Clear token from local storage
+    localStorage.removeItem("token"); // Clear token from local storage
     navigate("/#");
   };
 
@@ -17,11 +17,17 @@ export default function Navigation() {
       <nav className={classes.nav}>
         <ul>
           <NavLink
-            to=""
+            to="home"
             className={({ isActive }) => (isActive ? classes.active : "")}
             end
           >
-            Evidencija
+            Home
+          </NavLink>
+          <NavLink
+            to="test"
+            className={({ isActive }) => (isActive ? classes.active : "")}
+          >
+            Test
           </NavLink>
           <div>
             <div className={classes.background} />

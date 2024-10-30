@@ -5,11 +5,11 @@ import Layout from "./layout/Layout";
 import RegisterForm from "./Components/RegisterForm/RegisterForm";
 import ProtectedRoute from "./Components/Navigation/ProtectedRoute";
 import HomePage from "./Components/HomePage/HomePage";
+import CreateTestPage from "./Components/TestPage/CreateTestPage";
 
 function App() {
+  const isAuthenticated = !!localStorage.getItem("token");
 
-  const isAuthenticated = !!localStorage.getItem('token');
-  
   const router = createHashRouter([
     {
       path: "/",
@@ -20,20 +20,24 @@ function App() {
       element: <RegisterForm />,
     },
     {
-      path: "/home",
+      path: "/",
       element: (
-      <ProtectedRoute>
-        <Layout />
-      </ProtectedRoute>
+        <ProtectedRoute>
+          <Layout />
+        </ProtectedRoute>
       ),
       children: [
         {
-          path: "",
+          path: "/home",
           element: (
             <>
               <HomePage></HomePage>
             </>
           ),
+        },
+        {
+          path: "/test",
+          element: <CreateTestPage />,
         },
       ],
     },
