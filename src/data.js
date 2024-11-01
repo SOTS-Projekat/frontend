@@ -1,4 +1,4 @@
-const testData = {
+const test = {
   title: "Test iz Softverskog inženjerstva",
   questions: [
     {
@@ -207,4 +207,4 @@ const testData = {
   ],
 };
 
-export default testData;
+export default test;

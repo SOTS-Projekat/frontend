@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from "react";
 import styles from "./TestSolverPage.module.scss";
-import testData from "../../data";
+import test from "../../data";
 import TestService from "../Services/TestService";
 import { useParams } from "react-router";
 import LoadingIndicator from "../UI/LoadingIndicator";
 
 const TestSolverPage = () => {
   const { id } = useParams();
-  const [testData, setTestData] = useState(null);
+  const [testData, setTestData] = useState(test);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [answers, setAnswers] = useState(
