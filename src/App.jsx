@@ -5,7 +5,8 @@ import Layout from "./layout/Layout";
 import RegisterForm from "./Components/RegisterForm/RegisterForm";
 import ProtectedRoute from "./Components/Navigation/ProtectedRoute";
 import HomePage from "./Components/HomePage/HomePage";
-import CreateTestPage from "./Components/TestPage/CreateTestPage";
+import CreateTestPage from "./Components/CreateTestPage/CreateTestPage";
+import TestSolverPage from "./Components/TestSolverPage/TestSolverPage";
 
 function App() {
   const isAuthenticated = !!localStorage.getItem("token");
@@ -28,16 +29,16 @@ function App() {
       ),
       children: [
         {
-          path: "/home",
-          element: (
-            <>
-              <HomePage></HomePage>
-            </>
-          ),
+          path: "home",
+          element: <HomePage />,
         },
         {
-          path: "/test",
+          path: "test",
           element: <CreateTestPage />,
+        },
+        {
+          path: "test/:id",
+          element: <TestSolverPage />,
         },
       ],
     },
