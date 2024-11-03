@@ -17,12 +17,12 @@ const LoginForm = () => {
     try {
       const token = await AuthenticationService.login(username, password);
       console.log("Login successful, token:", token);
-      localStorage.setItem("token", JSON.stringify(token));
+      localStorage.setItem("token", token);
       setUsername("");
       setPassword("");
       navigate("/home");
     } catch (err) {
-      setError(err.message); // Display the error message to the user
+      setError(err.message); 
     }
   };
 

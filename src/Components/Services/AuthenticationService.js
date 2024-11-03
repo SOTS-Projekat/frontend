@@ -11,7 +11,7 @@ const AuthenticationService = {
                     'Content-Type': 'application/json'
                 }
             });
-            return response.data; // Token
+            return response.data; 
         } catch (error) {
             throw error.response ? error.response.data : new Error('Login failed');
         }
