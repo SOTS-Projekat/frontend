@@ -1,23 +1,25 @@
 import React, { useEffect, useState } from 'react';
 import UserService from '../Services/UserService'; 
+import GraphSetup from '../GraphForStudentAnswers/GraphSetup';
 
 const HomePage = () => {
     const [students, setStudents] = useState([]);
     const [error, setError] = useState(null);
 
-    // Function to fetch students
     const fetchStudents = async () => {
         try {
-            const studentsData = await UserService.getAllStudents(); // Call the service method
-            setStudents(studentsData); // Set the students data in state
+            const studentsData = await UserService.getAllStudents(); 
+            setStudents(studentsData); 
         } catch (err) {
-            setError(err.message); // Handle errors
+            setError(err.message); 
         }
     };
 
     useEffect(() => {
-        fetchStudents(); // Fetch students on component mount
+        fetchStudents(); 
     }, []);
+
+    const answers = ["A", "B", "C", "D"];
 
     return (
         <div className="home-wrapper">
@@ -35,6 +37,12 @@ const HomePage = () => {
             ) : (
                 <p>There are no students currently.</p>
             )}
+
+            <div style={{ marginTop: '40px' }}>
+                <h3>Graph:</h3>
+                {}
+                <GraphSetup answers={answers} />
+            </div>
         </div>
     );
 };

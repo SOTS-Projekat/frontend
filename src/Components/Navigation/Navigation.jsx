@@ -8,7 +8,7 @@ export default function Navigation() {
   const handleLogout = () => {
     localStorage.setItem("session", JSON.stringify(""));
     localStorage.removeItem("token"); // Clear token from local storage
-    navigate("/#");
+    navigate("");
   };
 
   return (
