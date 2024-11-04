@@ -6,13 +6,12 @@ const TestService = {
   createTest: async (test) => {
     console.log(test);
     const session = useSession();
-    console.log(session.jwt);
     try {
       const response = await fetch(API_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${session.jwt}`,
+          Authorization: `Bearer ${session}`,
         },
         body: JSON.stringify(test), // Koristite test objekat ovde
       });

@@ -22,7 +22,7 @@ const LoginForm = () => {
       setPassword("");
       navigate("/home");
     } catch (err) {
-      setError(err.message); 
+      setError(err.message);
     }
   };
 
