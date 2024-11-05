@@ -37,9 +37,23 @@ const TestSolverPage = () => {
     updatedAnswers[currentQuestionIndex] = selectedAnswer;
     setAnswers(updatedAnswers);
     setCompleted(true);
+
+    // Strukturiranje podataka za ResultResponse
+    const answeredQuestions = updatedAnswers.map(
+      (answerIndex, questionIndex) => ({
+        questionId: testData.questions[questionIndex].id,
+        answerId:
+          answerIndex !== null
+            ? testData.questions[questionIndex].offeredAnswers[answerIndex].id
+            : null,
+      })
+    );
+
+    //promjeni
     TestService.solveTest({
       testId: testData.id,
-      userAnswers: updatedAnswers,
+      userId: 1, // Pretpostavimo da je ID korisnika 123; zameni ga pravim ID-em korisnika
+      answeredQuestions,
     });
   };
 
@@ -55,18 +69,18 @@ const TestSolverPage = () => {
     }, 0);
   };
 
-  if (completed) {
-    const score = calculateScore();
-    return (
-      <div className={styles.completed}>
-        <h2>Test završen!</h2>
-        <p>
-          Vaš rezultat: {score} / {testData.questions.length}
-        </p>
-        <p>Hvala na učestvovanju.</p>
-      </div>
-    );
-  }
+  // if (completed) {
+  //   const score = calculateScore();
+  //   return (
+  //     <div className={styles.completed}>
+  //       <h2>Test završen!</h2>
+  //       <p>
+  //         Vaš rezultat: {score} / {testData.questions.length}
+  //       </p>
+  //       <p>Hvala na učestvovanju.</p>
+  //     </div>
+  //   );
+  // }
 
   if (!testData) {
     return <LoadingIndicator />;
@@ -79,7 +93,7 @@ const TestSolverPage = () => {
       try {
         console.log(id);
         const fetchedTest = await TestService.getTestById(id);
-        //const fetchedTest = testData;
+        console.log(fetchedTest);
         setTestData(fetchedTest);
         setAnswers(Array(fetchedTest.questions.length).fill(null));
       } catch (error) {

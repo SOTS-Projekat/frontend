@@ -1,0 +1,19 @@
+$pageBackground: #f0f2f5;
+$primaryColor: #4a90e2;
+$fontXLarge: 2rem;
+
+.pageContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: $pageBackground;
+  padding: 40px;
+
+  h1 {
+    font-size: $fontXLarge;
+    color: $primaryColor;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+}

@@ -53,27 +53,26 @@ const TestService = {
   solveTest: async (test) => {
     console.log(test);
     const session = useSession();
-    console.log(session.jwt);
-    // try {
-    //   const response = await fetch(API_URL, {
-    //     method: "POST",
-    //     headers: {
-    //       "Content-Type": "application/json",
-    //       Authorization: `Bearer ${session.jwt}`,
-    //     },
-    //     body: JSON.stringify(test), // Koristite test objekat ovde
-    //   });
+    try {
+      const response = await fetch("http://localhost:8080/api/result", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session}`,
+        },
+        body: JSON.stringify(test),
+      });
 
-    //   // Proverite da li je odgovor uspešan
-    //   if (!response.ok) {
-    //     throw new Error(`HTTP error! status: ${response.status}`);
-    //   }
+      // Proverite da li je odgovor uspešan
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
-    //   const data = await response.json(); // Pretvaranje odgovora u JSON
-    //   return data; // Vratite odgovor
-    // } catch (error) {
-    //   throw new Error(error.message || "Failed to create test");
-    // }
+      const data = await response.json(); // Pretvaranje odgovora u JSON
+      return data; // Vratite odgovor
+    } catch (error) {
+      throw new Error(error.message || "Failed to create test");
+    }
   },
 };
 

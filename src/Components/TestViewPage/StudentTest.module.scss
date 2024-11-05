@@ -1,0 +1,96 @@
+$green: #4caf50;
+$red: #f44336;
+$background-color: #f5f7fa;
+$card-color: #ffffff;
+$text-color: #333;
+$border-radius: 12px;
+$box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+$font-large: 1.2rem;
+$font-xlarge: 1.5rem;
+
+.testContainer {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 30px;
+  background-color: $background-color;
+  border-radius: $border-radius;
+  box-shadow: $box-shadow;
+  color: $text-color;
+
+  h2 {
+    font-size: $font-xlarge;
+    font-weight: 700;
+    margin-bottom: 30px;
+    color: rgba(50, 88, 123, 255);
+    text-align: center;
+  }
+}
+
+.question {
+  margin-bottom: 30px;
+  padding: 20px;
+  background-color: $card-color;
+  border-radius: $border-radius;
+  box-shadow: $box-shadow;
+
+  .questionTitle {
+    font-size: $font-large;
+    font-weight: bold;
+    margin-bottom: 15px;
+    color: rgba(50, 88, 123, 255);
+  }
+}
+
+.answerList {
+  list-style-type: none;
+  padding: 0;
+}
+
+.answerItem {
+  padding: 15px;
+  margin: 8px 0;
+  font-size: $font-large;
+  border-radius: $border-radius;
+  transition: background-color 0.3s, color 0.3s, transform 0.1s ease;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+
+  &:hover {
+    transform: scale(1.02);
+  }
+
+  &.correct {
+    color: $green;
+    background-color: rgba(76, 175, 80, 0.1);
+  }
+
+  &.incorrect {
+    color: $red;
+    background-color: rgba(244, 67, 54, 0.1);
+  }
+
+  &.selected {
+    font-weight: bold;
+    border: 2px solid rgba(0, 0, 0, 0.1);
+  }
+}
+
+.answerBadge {
+  font-size: 1rem;
+  padding: 5px 12px;
+  margin-left: 10px;
+  border-radius: 15px;
+  background-color: #e0e0e0;
+  color: #555;
+
+  &.correctBadge {
+    background-color: $green;
+    color: white;
+  }
+
+  &.incorrectBadge {
+    background-color: $red;
+    color: white;
+  }
+}

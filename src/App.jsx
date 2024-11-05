@@ -7,6 +7,7 @@ import ProtectedRoute from "./Components/Navigation/ProtectedRoute";
 import HomePage from "./Components/HomePage/HomePage";
 import CreateTestPage from "./Components/CreateTestPage/CreateTestPage";
 import TestSolverPage from "./Components/TestSolverPage/TestSolverPage";
+import StudentTestPage from "./Components/TestViewPage/StudentTestPage";
 
 function App() {
   const isAuthenticated = !!localStorage.getItem("token");
@@ -39,6 +40,10 @@ function App() {
         {
           path: "test/:id",
           element: <TestSolverPage />,
+        },
+        {
+          path: "test/result/:id",
+          element: <StudentTestPage />,
         },
       ],
     },
