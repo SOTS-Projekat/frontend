@@ -29,12 +29,13 @@ const TestService = {
   },
 
   getTestById: async (id) => {
+    const session = useSession();
     try {
       const response = await fetch(`${API_URL}/${id}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${session.jwt}`,
+          Authorization: `Bearer ${session}`,
         },
       });
 

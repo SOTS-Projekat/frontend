@@ -77,8 +77,9 @@ const TestSolverPage = () => {
   useEffect(() => {
     const fetchTest = async () => {
       try {
-        //const fetchedTest = await TestService.getTestById(id);
-        const fetchedTest = testData;
+        console.log(id);
+        const fetchedTest = await TestService.getTestById(id);
+        //const fetchedTest = testData;
         setTestData(fetchedTest);
         setAnswers(Array(fetchedTest.questions.length).fill(null));
       } catch (error) {
