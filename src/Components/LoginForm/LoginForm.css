@@ -1,29 +1,26 @@
-/* The container should fill the whole viewport */
 .container {
   display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  width: 100vw; /* Ensure the container spans the full width of the viewport */
+  justify-content: center; /* Center horizontally */
+  align-items: center;     /* Center vertically */
+  height: 100vh;          /* Full viewport height */
+  width: 100vw;           /* Full viewport width */
   background-color: #282c34; /* Optional: Set background color for the page */
 }
 
-/* Wrapper for the form */
 .wrapper {
-  width: 420px;
-  background: transparent;
+  width: 420px;             /* Fixed width for the form */
+  background: rgba(255, 255, 255, 0.1); /* Slightly visible background */
   border: 2px solid rgba(255, 255, 255, 0.2);
   color: #fff;
   border-radius: 10px;
   padding: 30px 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5); /* Optional: Add some shadow for depth */
 }
 
-/* Styling for the form's title */
 .wrapper h1 {
   text-align: center;
 }
 
-/* Input box styling */
 .wrapper .input-box {
   position: relative;
   width: 100%;
@@ -31,7 +28,6 @@
   margin: 30px 0;
 }
 
-/* Input field styling */
 .input-box input {
   height: 100%;
   width: 100%;
@@ -44,12 +40,10 @@
   color: #fff;
 }
 
-/* Placeholder text color */
 .input-box input::placeholder {
   color: #fff;
 }
 
-/* Icon positioning */
 .input-box .icon {
   position: absolute;
   color: rgb(78, 76, 76);
@@ -58,7 +52,6 @@
   transform: translateY(-50%);
 }
 
-/* Button styling */
 .wrapper button {
   width: 50%;
   height: 45px;
@@ -78,14 +71,12 @@
   box-shadow: 0 0 10px black;
 }
 
-/* Register link styling */
 .wrapper .register-link {
   font-size: 14px;
   text-align: center;
   margin: 20px 0 15px;
 }
 
-/* Register link styling on hover */
 .register-link p a {
   color: #fff;
   text-decoration: none;
@@ -96,7 +87,6 @@
   text-decoration: underline;
 }
 
-/* Error message styling */
 .error-message {
   font-weight: 600;
   text-decoration: underline;

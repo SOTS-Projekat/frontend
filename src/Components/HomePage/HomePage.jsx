@@ -8,10 +8,6 @@ const HomePage = () => {
     const [students, setStudents] = useState([]);
     const [error, setError] = useState(null);
 
-    const decodedToken = getDecodedToken();
-    const username = decodedToken?.sub;
-    const role = decodedToken?.role;
-
     const fetchStudents = async () => {
         try {
             const studentsData = await UserService.getAllStudents();
@@ -25,16 +21,10 @@ const HomePage = () => {
         fetchStudents();
     }, []);
 
-    const answers = ["A", "B", "C", "D"];
+    const answers = ["A", "B", "C", "D", "C", "A", "A"];
 
     return (
         <div className="home-wrapper">
-            {}
-            <div className="user-info">
-                <p><span className="label">Username:</span> <span className="value">{username}</span></p>
-                <p><span className="label">Role:</span> <span className="value">{role}</span></p>
-            </div>
-
             <h1>Welcome to the Home Page!</h1>
             {error && <p className="error-message">Error: {error}</p>}
             <h2>List of Students:</h2>

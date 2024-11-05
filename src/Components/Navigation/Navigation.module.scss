@@ -6,7 +6,6 @@
   height: 5rem;
   font-size: 1.2rem;
   background-color: rgba(50, 88, 123, 255);
-  //background: linear-gradient(to bottom, rgba(50, 88, 123, 255), rgb(183, 28, 28));
   color: white;
   margin-bottom: 0;
   width: 100%;
@@ -17,9 +16,16 @@
 
   .left-container {
     display: flex;
-    align-items: center;
-    justify-content: flex-start;
+    flex-direction: column; // Stack elements vertically
+    justify-content: center; // Center elements vertically
+    align-items: flex-start; // Align items to the start
     width: calc((100% / 2) - 15%);
+    
+    p {
+      margin: 0; // Remove default margins
+      font-size: 1rem; // Adjust font size if needed
+      color: white; // Set text color to white or adjust as desired
+    }
   }
 
   .right-container {
