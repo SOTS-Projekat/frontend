@@ -1,3 +1,6 @@
+/* index.css */
+
+/* Global reset and font settings */
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap");
 
 * {
@@ -12,14 +15,7 @@ body {
   background: rgb(112, 111, 107);
   min-height: 100vh;
   font-family: "Poppins", sans-serif;
-}
-
-/* body {
-  margin: 0;
-  font-family: 'Poppins', sans-serif;
-  background: rgb(112, 111, 107);
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
-} */
+}

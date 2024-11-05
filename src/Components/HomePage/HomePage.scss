@@ -1,0 +1,65 @@
+.home-wrapper {
+    padding: 20px;
+  
+    .user-info {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      font-size: 1rem;
+      color: #333;
+  
+      p {
+        margin: 0;
+        display: flex;
+        align-items: center;
+      }
+  
+      .label {
+        font-weight: bold;
+        margin-right: 5px;
+      }
+  
+      .value {
+        color: #007bff; // Color for the value
+      }
+    }
+  
+    h1 {
+      margin-top: 60px;
+      font-size: 2rem;
+      color: #222;
+    }
+  
+    h2 {
+      font-size: 1.5rem;
+      margin-top: 20px;
+      color: #444;
+    }
+  
+    ul {
+      list-style-type: none;
+      padding: 0;
+  
+      li {
+        padding: 8px 0;
+        font-size: 1rem;
+        color: #555;
+      }
+    }
+  
+    .error-message {
+      color: red;
+      font-size: 0.9rem;
+      margin: 10px 0;
+    }
+  
+    .graph-section {
+      margin-top: 40px;
+  
+      h3 {
+        font-size: 1.2rem;
+        color: #333;
+      }
+    }
+  }
+  
