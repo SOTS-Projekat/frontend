@@ -1,145 +1,123 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import * as d3 from 'd3';
 
-const GraphSetup = ({ answers }) => {
+const GraphSetup = () => {
   const svgRef = useRef();
+  const [nodes, setNodes] = useState([]);
+  const [links, setLinks] = useState([]);
+  const [selectedNode, setSelectedNode] = useState(null); // Track selected node for linking
 
-  useEffect(() => {
-    const nodes = [];
-    const links = [];
-    let sequence = "";
-
-    answers.forEach((answer, index) => {
-      sequence += answer;
-      nodes.push({ id: sequence });
-      if (index > 0) {
-        links.push({ source: nodes[index - 1].id, target: sequence, label: answer });
-      }
+  const handleSvgClick = (event) => {
+    const coords = d3.pointer(event);
+    
+    // Check if the click is near an existing node
+    const clickedNode = nodes.find(node => {
+      const dx = coords[0] - node.x;
+      const dy = coords[1] - node.y;
+      return Math.sqrt(dx * dx + dy * dy) < 20; // Check if within radius of existing node (20px)
     });
 
-    const width = 800;
-    const height = 600;
-    const svg = d3.select(svgRef.current)
-      .attr("width", width)
-      .attr("height", height)
-      .style("background", "#f0f0f0");
+    if (clickedNode) {
+      // If a node is clicked, select it for linking
+      handleNodeClick(clickedNode);
+    } else {
+      // If no node is clicked, create a new node
+      const label = prompt("Enter a name for this node:");
+      if (label) {
+        const newNode = { id: `node-${nodes.length}`, x: coords[0], y: coords[1], label };
+        setNodes((prevNodes) => [...prevNodes, newNode]);
+      }
+    }
+  };
 
-    const simulation = d3.forceSimulation(nodes)
-      .force("link", d3.forceLink(links).id(d => d.id).distance(100))
-      .force("charge", d3.forceManyBody().strength(-400))
-      .force("center", d3.forceCenter(width / 2, height / 2));
+  const handleNodeClick = (node) => {
+    if (selectedNode) {
+      // If a node is already selected, create a link between the two nodes
+      if (selectedNode !== node) {
+        const newLink = { source: selectedNode, target: node };
+        setLinks((prevLinks) => [...prevLinks, newLink]);
+      }
+      setSelectedNode(null); // Reset selected node after link creation
+    } else {
+      // If no node is selected, set the current node as selected
+      setSelectedNode(node);
+    }
+  };
 
-    const link = svg.selectAll(".link")
+  const drag = d3.drag()
+    .on("start", (event, d) => {
+      // Start the drag from the node
+      d3.select(event.sourceEvent.target).raise().classed("active", true);
+    })
+    .on("drag", (event, d) => {
+      // Update the dragged node's position during drag
+      d.x = event.x;
+      d.y = event.y;
+      updateGraph();
+    })
+    .on("end", (event, d) => {
+      // On drag end, reset dragging state
+      d3.select(event.sourceEvent.target).classed("active", false);
+    });
+
+  const updateGraph = () => {
+    const svg = d3.select(svgRef.current);
+
+    // Render links
+    svg.selectAll(".link")
       .data(links)
       .join("line")
       .attr("class", "link")
       .attr("stroke", "#999")
       .attr("stroke-width", 2)
-      .attr("marker-end", "url(#arrow)");  
+      .attr("x1", (d) => d.source.x)
+      .attr("y1", (d) => d.source.y)
+      .attr("x2", (d) => d.target.x)
+      .attr("y2", (d) => d.target.y);
 
-    svg.append("defs").append("marker")
-      .attr("id", "arrow")
-      .attr("viewBox", "0 -5 10 10")
-      .attr("refX", 15)  
-      .attr("refY", 0)
-      .attr("markerWidth", 6)
-      .attr("markerHeight", 6)
-      .attr("orient", "auto")
-      .append("path")
-      .attr("d", "M0,-5L10,0L0,5")
-      .attr("fill", "#999");
-
-    const node = svg.selectAll(".node")
+    // Render nodes
+    const nodeElements = svg.selectAll(".node")
       .data(nodes)
       .join("circle")
       .attr("class", "node")
-      .attr("r", 20)
+      .attr("r", 15)
       .attr("fill", "#69b3a2")
-      .call(drag(simulation));
+      .attr("cx", (d) => d.x)
+      .attr("cy", (d) => d.y)
+      .on("click", (event, d) => handleNodeClick(d))  // Handle node click
+      .call(drag);
 
-    const labels = svg.selectAll(".label")
+    // Render labels
+    svg.selectAll(".label")
       .data(nodes)
       .join("text")
       .attr("class", "label")
-      .text(d => d.id)
+      .attr("x", (d) => d.x)
+      .attr("y", (d) => d.y - 20)
+      .attr("text-anchor", "middle")
       .attr("font-size", 12)
-      .attr("text-anchor", "middle");
+      .text((d) => d.label);
 
-    const linkLabels = svg.selectAll(".link-label")
+    // Render link labels
+    svg.selectAll(".link-label")
       .data(links)
       .join("text")
       .attr("class", "link-label")
-      .text(d => `${d.label}`)
-      .attr("font-size", 10)
+      .attr("x", (d) => (d.source.x + d.target.x) / 2)
+      .attr("y", (d) => (d.source.y + d.target.y) / 2)
       .attr("text-anchor", "middle")
-      .attr("dy", -5);
+      .attr("font-size", 10)
+      .text((d) => d.label);
+  };
 
-  
-    const pointer = svg.selectAll(".pointer")
-      .data(links)
-      .join("line")
-      .attr("class", "pointer")
-      .attr("x1", d => d.source.x)
-      .attr("y1", d => d.source.y)
-      .attr("x2", d => d.target.x)
-      .attr("y2", d => d.target.y)
-      .attr("stroke", "black")  
-      .attr("stroke-width", 3)
-      .attr("marker-end", "url(#arrow)");  
+  // Initial render and update when nodes or links change
+  React.useEffect(() => {
+    updateGraph();
+  }, [nodes, links]);
 
-    simulation.on("tick", () => {
-      link
-        .attr("x1", d => d.source.x)
-        .attr("y1", d => d.source.y)
-        .attr("x2", d => d.target.x)
-        .attr("y2", d => d.target.y);
-
-      pointer
-        .attr("x1", d => d.source.x)
-        .attr("y1", d => d.source.y)
-        .attr("x2", d => d.target.x)
-        .attr("y2", d => d.target.y);
-
-      node
-        .attr("cx", d => d.x)
-        .attr("cy", d => d.y);
-
-      labels
-        .attr("x", d => d.x)
-        .attr("y", d => d.y - 25);
-
-      linkLabels
-        .attr("x", d => (d.source.x + d.target.x) / 2)
-        .attr("y", d => (d.source.y + d.target.y) / 2);
-    });
-
-    function drag(simulation) {
-      function dragStarted(event, d) {
-        if (!event.active) simulation.alphaTarget(0.3).restart();
-        d.fx = d.x;
-        d.fy = d.y;
-      }
-
-      function dragged(event, d) {
-        d.fx = event.x;
-        d.fy = event.y;
-      }
-
-      function dragEnded(event, d) {
-        if (!event.active) simulation.alphaTarget(0);
-        d.fx = null;
-        d.fy = null;
-      }
-
-      return d3.drag()
-        .on("start", dragStarted)
-        .on("drag", dragged)
-        .on("end", dragEnded);
-    }
-
-  }, [answers]);
-
-  return <svg ref={svgRef}></svg>;
+  return (
+    <svg ref={svgRef} onClick={handleSvgClick} style={{ background: "#f0f0f0", width: '800px', height: '600px' }}></svg>
+  );
 };
 
 export default GraphSetup;

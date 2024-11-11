@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import UserService from '../Services/UserService'; 
 import GraphSetup from '../GraphForStudentAnswers/GraphSetup';
-import { getDecodedToken } from '../../hooks/authUtils';
 import './HomePage.scss'; 
 
 const HomePage = () => {
@@ -20,8 +19,6 @@ const HomePage = () => {
     useEffect(() => {
         fetchStudents();
     }, []);
-
-    const answers = ["A", "B", "C", "D", "C", "A", "A"];
 
     return (
         <div className="home-wrapper">
@@ -42,7 +39,7 @@ const HomePage = () => {
 
             <div className="graph-section">
                 <h3>Graph:</h3>
-                <GraphSetup answers={answers} />
+                <GraphSetup />
             </div>
         </div>
     );
