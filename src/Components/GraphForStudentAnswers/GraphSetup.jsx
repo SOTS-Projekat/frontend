@@ -25,41 +25,42 @@ const GraphSetup = () => {
           const newNodes = [...prevNodes, newNode];
           
           const newEdges = [];
-          newNodes.forEach((newNode) => {
-            newNodes.forEach((existingNode) => {
-              if (newNode !== existingNode) {
-                const dx = newNode.x - existingNode.x;
-                const dy = newNode.y - existingNode.y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                if (distance <= 130) {
-                  const edgeId = `${newNode.id}-${existingNode.id}`;
-                  if (!edges.some(edge => edge.id === edgeId)) {
-                    const edgeName = prompt(`Name the edge between ${newNode.label} and ${existingNode.label}:`);
-                    if (edgeName) {
-                      newEdges.push({
-                        id: edgeId,
-                        name: edgeName,
-                        source: newNode.id,
-                        target: existingNode.id,
-                      });
-                    }
-                  }
+        newNodes.forEach((newNode) => {
+          newNodes.forEach((existingNode) => {
+            if (newNode !== existingNode) {
+              const dx = newNode.x - existingNode.x;
+              const dy = newNode.y - existingNode.y;
+              const distance = Math.sqrt(dx * dx + dy * dy);
+              if (distance <= 130) {
+                const edgeId = `${newNode.id}-${existingNode.id}`;
+                // Only add edge if it doesn't exist already
+                if (!edges.some(edge => edge.id === edgeId || edge.id === `${existingNode.id}-${newNode.id}`)) {
+                  newEdges.push({
+                    id: edgeId,
+                    name: "",  // Start with an empty label
+                    source: newNode.id,
+                    target: existingNode.id,
+                  });
                 }
               }
-            });
+            }
           });
+        });
 
-          setEdges((prevEdges) => [...prevEdges, ...newEdges]);
+        setEdges((prevEdges) => [...prevEdges, ...newEdges]);
 
-          return newNodes;
+        return newNodes;
         });
       }
     }
   };
 
-  const handleNodeClick = (node) => {
+  const handleNodeClick = (event, node) => {
+    event.stopPropagation();  //  Koristimo kada zelimo da nas event ne ide dalje uz dom stablo (u ovom slucaju, da se ne okine dvaput - u svg i u node)
+    console.log("Node clicked:", node); //  Tehnicki, child clicked
+    //event.preventDefault();
     const newLabel = prompt("Rename current node:", node.label);
-    if (newLabel) {
+    if (newLabel && newLabel !== node.label) {  
       setNodes((prevNodes) =>
         prevNodes.map((n) =>
           n.id === node.id ? { ...n, label: newLabel } : n
@@ -67,9 +68,10 @@ const GraphSetup = () => {
       );
     }
   };
-
+  
   const handleNodeRightClick = (event, node) => {
-    event.preventDefault();
+    console.log("Node clicked:", node);
+    event.preventDefault(); //  Otkazi normalno ponasanje kada kliknemo desni klik (otvori dodatni meni)
     const confirmation = window.confirm("Are you sure you want to delete this node?");
     if (confirmation) {
       setNodes((prevNodes) => prevNodes.filter((n) => n.id !== node.id));
@@ -77,18 +79,27 @@ const GraphSetup = () => {
     }
   };
   
-
   const handleEdgeClick = (edge, event) => {
+    console.log(edge);
     event.stopPropagation();
     const newEdgeName = prompt("Rename the edge:", edge.name);
-    if (newEdgeName) {
+    if (newEdgeName !== null) {
       setEdges((prevEdges) =>
         prevEdges.map((e) =>
           e.id === edge.id ? { ...e, name: newEdgeName } : e
         )
       );
     }
-    console.log(edge);
+  };
+
+  const getMidpoint = (source, target) => {
+    const sourceNode = nodes.find(node => node.id === source);
+    const targetNode = nodes.find(node => node.id === target);
+    if (!sourceNode || !targetNode) return { x: 0, y: 0 };
+    return {
+      x: (sourceNode.x + targetNode.x) / 2,
+      y: (sourceNode.y + targetNode.y) / 2
+    };
   };
 
   const drag = d3.drag()
@@ -107,6 +118,21 @@ const GraphSetup = () => {
   const updateGraph = () => {
     const svg = d3.select(svgRef.current);
 
+    // Define arrow marker (only once)
+    svg.select("defs").remove(); // Clear previous definitions
+    const defs = svg.append("defs");
+    defs.append("marker")
+      .attr("id", "arrowhead")
+      .attr("viewBox", "-10 -5 10 10")
+      .attr("refX", -3) // Position arrow slightly away from the node circle
+      .attr("refY", 0)
+      .attr("orient", "auto")
+      .attr("markerWidth", 6)
+      .attr("markerHeight", 6)
+      .append("path")
+      .attr("d", "M -10,-5 L 0,0 L -10,5")
+      .attr("fill", "#999");
+
     // Render edges
     svg.selectAll(".edge")
       .data(edges)
@@ -114,8 +140,8 @@ const GraphSetup = () => {
       .attr("class", "edge")
       .attr("stroke", "#999")
       .attr("stroke-width", 4)
-      .attr("stroke-dasharray", "5,5")
-      .attr("x1", (d) => nodes.find(node => node.id === d.source)?.x) //  These 4 coordinates connects edges to the nodes
+      .attr("marker-end", "url(#arrowhead)") // Attach arrow to end
+      .attr("x1", (d) => nodes.find(node => node.id === d.source)?.x)
       .attr("y1", (d) => nodes.find(node => node.id === d.source)?.y)
       .attr("x2", (d) => nodes.find(node => node.id === d.target)?.x)
       .attr("y2", (d) => nodes.find(node => node.id === d.target)?.y)
@@ -124,22 +150,14 @@ const GraphSetup = () => {
 
     // Render edge labels
     svg.selectAll(".edge-label")
-      .data(edges)
-      .join("text")
-      .attr("class", "edge-label")
-      .attr("x", (d) => {
-        const sourceNode = nodes.find(node => node.id === d.source);
-        const targetNode = nodes.find(node => node.id === d.target);
-        return sourceNode && targetNode ? (sourceNode.x + targetNode.x) / 2 : 0;
-      })
-      .attr("y", (d) => {
-        const sourceNode = nodes.find(node => node.id === d.source);
-        const targetNode = nodes.find(node => node.id === d.target);
-        return sourceNode && targetNode ? (sourceNode.y + targetNode.y) / 2 : 0;
-      })
-      .attr("text-anchor", "middle")
-      .attr("font-size", 12)
-      .text(d => d.name);
+  .data(edges)
+  .join("text")
+  .attr("class", "edge-label")
+  .attr("x", d => getMidpoint(d.source, d.target).x)
+  .attr("y", d => getMidpoint(d.source, d.target).y)
+  .attr("text-anchor", "middle")
+  .attr("font-size", 12)
+  .text(d => d.name);
 
     // Render nodes
     svg.selectAll(".node")
@@ -151,7 +169,8 @@ const GraphSetup = () => {
       .attr("cx", (d) => d.x)
       .attr("cy", (d) => d.y)
       .style("cursor", "pointer")
-      .on("click", (event, d) => handleNodeClick(d))
+      .on("click", null)
+      .on("click", (event, d) => handleNodeClick(event, d))
       .on("contextmenu", (event, d) => handleNodeRightClick(event, d))
       .call(drag);
 
