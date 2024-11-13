@@ -150,14 +150,14 @@ const GraphSetup = () => {
 
     // Render edge labels
     svg.selectAll(".edge-label")
-  .data(edges)
-  .join("text")
-  .attr("class", "edge-label")
-  .attr("x", d => getMidpoint(d.source, d.target).x)
-  .attr("y", d => getMidpoint(d.source, d.target).y)
-  .attr("text-anchor", "middle")
-  .attr("font-size", 12)
-  .text(d => d.name);
+    .data(edges)
+    .join("text")
+    .attr("class", "edge-label")
+    .attr("x", d => getMidpoint(d.source, d.target).x)
+    .attr("y", d => getMidpoint(d.source, d.target).y)
+    .attr("text-anchor", "middle")
+    .attr("font-size", 12)
+    .text(d => d.name);
 
     // Render nodes
     svg.selectAll(".node")
@@ -169,7 +169,6 @@ const GraphSetup = () => {
       .attr("cx", (d) => d.x)
       .attr("cy", (d) => d.y)
       .style("cursor", "pointer")
-      .on("click", null)
       .on("click", (event, d) => handleNodeClick(event, d))
       .on("contextmenu", (event, d) => handleNodeRightClick(event, d))
       .call(drag);
