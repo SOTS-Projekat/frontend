@@ -73,9 +73,10 @@ const GraphSetup = () => {
     const confirmation = window.confirm("Are you sure you want to delete this node?");
     if (confirmation) {
       setNodes((prevNodes) => prevNodes.filter((n) => n.id !== node.id));
-      setEdges((prevEdges) => prevEdges.filter((e) => e.source.id !== node.id && e.target.id !== node.id));
+      setEdges((prevEdges) => prevEdges.filter((e) => e.source !== node.id && e.target !== node.id));
     }
   };
+  
 
   const handleEdgeClick = (edge, event) => {
     event.stopPropagation();
