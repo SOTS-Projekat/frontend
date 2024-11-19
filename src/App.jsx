@@ -8,6 +8,8 @@ import HomePage from "./Components/HomePage/HomePage";
 import CreateTestPage from "./Components/CreateTestPage/CreateTestPage";
 import TestSolverPage from "./Components/TestSolverPage/TestSolverPage";
 import StudentTestPage from "./Components/TestViewPage/StudentTestPage";
+import KnowledgeDomainPage from "./Components/KnowledgeDomain/KnowledgeDomainPage";
+import CreateKnowledgeDomain from "./Components/KnowledgeDomain/CreateKnowledgeDomain";
 
 function App() {
   const isAuthenticated = !!localStorage.getItem("token");
@@ -44,6 +46,14 @@ function App() {
         {
           path: "test/result/:id",
           element: <StudentTestPage />,
+        },
+        {
+          path: "knowledge-domain",
+          element: <KnowledgeDomainPage />,
+        },
+        {
+          path: "knowledge-domain/create",
+          element: <CreateKnowledgeDomain />,
         },
       ],
     },

@@ -1,0 +1,89 @@
+$primary-color: rgba(
+  50,
+  88,
+  123,
+  255
+); // Promeni ovde ako je druga primarna boja
+$secondary-color: rgba(50, 88, 123, 255); // Tamnija nijansa za hover
+$input-bg: #f9f9f9;
+$input-border: #dcdcdc;
+$transition-duration: 0.3s;
+
+.container {
+  padding: 20px;
+  font-family: Arial, sans-serif;
+}
+
+.header {
+  font-size: 26px;
+  font-weight: bold;
+  margin-bottom: 20px;
+  color: $primary-color;
+  text-align: center;
+  letter-spacing: 1px;
+  animation: fadeInDown $transition-duration ease-out;
+}
+
+.inputGroup {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.input {
+  width: 100%;
+  padding: 10px 15px;
+  font-size: 1.3rem;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  margin-bottom: 10px;
+  transition: border-color 0.3s;
+
+  &:focus {
+    border-color: rgba(50, 88, 123, 255);
+    outline: none;
+    box-shadow: 0 0 5px rgba(50, 88, 123, 255);
+  }
+}
+
+.select {
+  padding: 10px 15px;
+  border: 2px solid $input-border;
+  border-radius: 5px;
+  font-size: 16px;
+  background-color: $input-bg;
+  color: #333;
+  outline: none;
+  transition: all $transition-duration ease-in-out;
+
+  &:focus {
+    border-color: $primary-color;
+    box-shadow: 0 0 8px $primary-color;
+    background-color: white;
+  }
+}
+
+.button {
+  background-color: rgba(50, 88, 123, 255);
+  color: #fff;
+  padding: 10px 20px;
+  font-size: 1.3rem;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+
+  &:hover {
+    background-color: rgba(42, 74, 102, 255);
+  }
+}
+
+.graphContainer {
+  margin-top: 20px;
+  border: 2px solid rgb(211, 211, 211);
+  border-radius: 10px;
+  padding: 15px;
+  background: white;
+  box-shadow: 0 4px 8px rgba(0, 123, 255, 0.1);
+}

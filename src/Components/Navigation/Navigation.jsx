@@ -12,7 +12,7 @@ export default function Navigation() {
 
   const handleLogout = () => {
     localStorage.setItem("session", JSON.stringify(""));
-    localStorage.removeItem("token"); 
+    localStorage.removeItem("token");
     navigate("");
   };
 
@@ -20,7 +20,7 @@ export default function Navigation() {
     <header className={classes.header}>
       <div className={classes["left-container"]}>
         {username && <p className={classes.username}>Username: {username}</p>}
-        {role && <p className={classes.role}>Role: {role}</p>} 
+        {role && <p className={classes.role}>Role: {role}</p>}
       </div>
       <nav className={classes.nav}>
         <ul>
@@ -37,6 +37,12 @@ export default function Navigation() {
           >
             Test
           </NavLink>
+          <NavLink
+            to="knowledge-domain"
+            className={({ isActive }) => (isActive ? classes.active : "")}
+          >
+            Knowledge Domain
+          </NavLink>
           <div>
             <div className={classes.background} />
             <div className={classes.footer} />
@@ -45,7 +51,7 @@ export default function Navigation() {
       </nav>
       <div className={classes["right-container"]}>
         <button onClick={handleLogout} className={classes.logoutButton}>
-          <FiLogOut size={22} /> 
+          <FiLogOut size={22} />
         </button>
       </div>
     </header>

@@ -1,0 +1,117 @@
+.container {
+  padding: 20px;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.emptyMessage {
+  text-align: center;
+  font-size: 1.2rem;
+  color: #888;
+  margin-top: 50px;
+}
+
+.grid {
+  display: flex;
+  flex-wrap: wrap; /* Omogućava prelazak u novi red kada nema dovoljno prostora */
+  gap: 20px; /* Razmak između kartica */
+  justify-content: center; /* Poravnanje kartica na početak */
+  width: 100vw;
+  padding: 0rem 3rem;
+}
+
+.card {
+  display: flex;
+  justify-content: space-between;
+  flex-direction: column;
+  background-color: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+  flex: 1 1 calc(25% - 20px); /* Fleksibilna širina kartice: 25% uz razmak */
+  max-width: 250px; /* Maksimalna širina kartice */
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
+  }
+}
+
+.cardHeader {
+  background-color: rgba(50, 88, 123, 255);
+  color: #fff;
+  padding: 10px 15px;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+
+  .domainName {
+    font-size: 1.5rem;
+    margin: 0;
+  }
+}
+
+.cardBody {
+  padding: 15px;
+
+  .description {
+    font-size: 1rem;
+    color: #555;
+  }
+}
+
+.cardFooter {
+  background-color: #f9f9f9;
+  padding: 10px 15px;
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+
+  .createdAt {
+    font-size: 0.9rem;
+    color: #888;
+  }
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: end;
+  margin-bottom: 20px;
+  width: 86%;
+}
+
+.searchInput {
+  padding: 10px 15px;
+  font-size: 1.3rem;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  margin-right: 20px;
+  width: 20rem;
+  transition: all 0.3s ease-in-out; /* Dodaje animaciju za sve promene */
+
+  &:focus {
+    outline: none; /* Uklanja standardni fokus */
+    border-color: rgba(50, 88, 123, 255); /* Promena boje obruba */
+    box-shadow: 0 0 10px rgba(50, 88, 123, 0.5); /* Mekani sjaj oko polja */
+  }
+}
+
+.createButton {
+  background-color: rgba(50, 88, 123, 255);
+  color: #fff;
+  padding: 10px 20px;
+  font-size: 1.3rem;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+
+  &:hover {
+    background-color: rgba(50, 88, 123, 255);
+  }
+}
