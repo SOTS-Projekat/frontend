@@ -1,40 +1,35 @@
-.button-container {
-  display: flex;
-  gap: 10px;
-  margin-top: 20px;
-}
-
 .button {
-  padding: 10px 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   border: none;
-  border-radius: 8px;
-  font-size: 1.6rem;
   cursor: pointer;
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  transition: all 0.3s ease;
+
+  // Podrazumevana pozadina dugmeta
+  background-color: rgba(50, 88, 123, 1);
+  color: white; // Podrazumevana boja teksta
+  font-size: 16px;
+  border-radius: 5px;
 
   &:hover {
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    opacity: 0.9; // Blago smanjenje vidljivosti
+    transform: scale(1.05); // Lagano povećanje
+  }
+
+  &:active {
+    transform: scale(0.95); // Lagano smanjenje veličine
+    background-color: rgba(30, 70, 100, 1); // Tamnija nijansa za active stanje
   }
 
   &:focus {
-    outline: none;
+    outline: 2px solid rgba(255, 255, 255, 0.5); // Fokus efekat
+    outline-offset: 2px;
   }
-}
 
-.create-button {
-  background-color: rgba(50, 88, 123, 255);
-  color: #fff;
-
-  &:hover {
-    background-color: rgba(50, 88, 110, 255);
-  }
-}
-
-.cancel-button {
-  background-color: rgb(138, 138, 138);
-  color: #fff;
-
-  &:hover {
-    background-color: rgb(132, 132, 132);
+  &:disabled {
+    cursor: not-allowed;
+    background-color: #ccc; // Siva boja za onemogućeno dugme
+    opacity: 0.6;
   }
 }

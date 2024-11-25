@@ -5,12 +5,15 @@ import TextAreaField from "../UI/TextAreaField";
 import Answer from "./Answer";
 import classes from "./AddQuestionModal.module.scss";
 import { toast } from "react-toastify";
+import DropdownList from "../UI/DropdownList";
 
-const AddQuestionModal = ({ onCreate, onClose }) => {
+const AddQuestionModal = ({ onCreate, onClose, nodeOptionsProp }) => {
   const [question, setQuestion] = useState("");
   const [answers, setAnswers] = useState([]);
   const [inputAnswer, setInputAnswer] = useState("");
   const [showInput, setShowInput] = useState(false);
+  const [nodeOptions, setNodeOptions] = useState(nodeOptionsProp);
+  const [selectedNode, setSelectedNode] = useState();
 
   const handleAddQuestion = () => {
     if (answers.length < 4 && inputAnswer.trim()) {
@@ -38,17 +41,25 @@ const AddQuestionModal = ({ onCreate, onClose }) => {
       const hasCorrectAnswer = answers.some((answer) => answer.isCorrect);
 
       if (!hasCorrectAnswer) {
-        alert("Molimo označite bar jedan tačan odgovor.");
+        toast.info("Molimo označite bar jedan tačan odgovor.");
         return;
       }
 
-      const q = { questionText: question, offeredAnswers: answers };
+      const q = {
+        questionText: question,
+        connectedNodeId: selectedNode,
+        offeredAnswers: answers,
+      };
       console.log(q);
       onCreate(q);
       onClose();
     } else {
-      alert("Molimo unesite pitanje i dodajte barem dva odgovora.");
+      toast.info("Molimo unesite pitanje i dodajte barem dva odgovora.");
     }
+  };
+
+  const nodeChangeHandler = (value) => {
+    setSelectedNode(value);
   };
 
   return (
@@ -56,37 +67,51 @@ const AddQuestionModal = ({ onCreate, onClose }) => {
       <Backdrop onClose={onClose} />
       <div className={classes.dialog}>
         <div className={classes.header}>
-          <h2>Evidentiraj</h2>
+          <h2>Dodaj pitanje</h2>
         </div>
         <div className={classes["inputs-container"]}>
           <div className={classes["question-input"]}>
             <TextAreaField
               type="text"
-              label="Pitanje*"
-              placeholder="Unesite pitanje"
+              label="Question*"
+              placeholder="Insert question"
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
               error={""}
             />
-            <Button
-              type="create"
-              label="Dodaj odgovor"
-              onClick={() => setShowInput(!showInput)}
+          </div>
+          <div>
+            <DropdownList
+              label="Connect node*"
+              labelStyle={{ fontSize: "16px" }}
+              options={nodeOptions ? nodeOptions : []}
+              value={selectedNode}
+              style={{ width: "auto" }}
+              //mode={"multiple"}
+              allowClear={true}
+              onClear={() => setSelectedNode()}
+              onChangeDropdown={nodeChangeHandler}
+              placeholder={"Select node"}
+              size={"large"}
+              status={selectedNode ? "success" : "error"}
             />
           </div>
-          {showInput && (
-            <div className={classes["question-input"]}>
-              <TextAreaField
-                type="text"
-                label="Odgovor*"
-                placeholder="Unesite odgovor"
-                value={inputAnswer}
-                onChange={(e) => setInputAnswer(e.target.value)}
-                error={""}
-              />
-              <Button type="create" label="+" onClick={handleAddQuestion} />
-            </div>
-          )}
+          <div className={classes["question-input"]}>
+            <TextAreaField
+              type="text"
+              label="Answer*"
+              placeholder="Insert answer"
+              value={inputAnswer}
+              onChange={(e) => setInputAnswer(e.target.value)}
+              error={""}
+            />
+            <Button
+              text="+"
+              width="40px"
+              height="35px"
+              onClick={handleAddQuestion}
+            />
+          </div>
           <div className={classes["answers-container"]}>
             {answers.map((a, index) => (
               <Answer
@@ -105,8 +130,12 @@ const AddQuestionModal = ({ onCreate, onClose }) => {
           </div>
         </div>
         <div className={classes["buttons-container"]}>
-          <Button type="create" label="Kreiraj" onClick={handleCreate} />
-          <Button type="cancel" label="Otkaži" onClick={onClose} />
+          <Button text="Kreiraj" onClick={handleCreate} />
+          <Button
+            text="Otkaži"
+            backgroundColor="rgb(158, 158, 158)"
+            onClick={onClose}
+          />
         </div>
       </div>
     </>

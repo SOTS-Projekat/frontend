@@ -36,7 +36,7 @@ const KnowledgeDomainService = {
     const session = useSession();
     const decodedToken = getDecodedToken();
     try {
-      const response = await fetch(`${API_URL}/all/${decodedToken.id}`, {
+      const response = await fetch(`${API_URL}/${decodedToken.id}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

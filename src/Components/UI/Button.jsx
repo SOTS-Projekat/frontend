@@ -1,13 +1,36 @@
 import React from "react";
-import classes from "./Button.module.scss";
+import styles from "./Button.module.scss";
 
-export default function Button({ type, label, onClick }) {
-  const buttonClass =
-    type === "create" ? classes["create-button"] : classes["cancel-button"];
+const Button = ({
+  text = "Click Me",
+  width = "100px",
+  height = "40px",
+  backgroundColor, // Prebacuje boju ako je prosleđena
+  textColor = "white",
+  fontSize = "16px",
+  borderRadius = "5px",
+  onClick,
+  disabled = false,
+}) => {
+  const buttonStyle = {
+    width,
+    height,
+    backgroundColor: backgroundColor || "rgba(50, 88, 123, 1)", // Podrazumevana boja
+    color: textColor,
+    fontSize,
+    borderRadius,
+  };
 
   return (
-    <button className={`${classes["button"]} ${buttonClass}`} onClick={onClick}>
-      {label}
+    <button
+      className={styles.button}
+      style={buttonStyle}
+      onClick={onClick}
+      disabled={disabled}
+    >
+      {text}
     </button>
   );
-}
+};
+
+export default Button;

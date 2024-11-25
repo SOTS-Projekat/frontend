@@ -10,6 +10,7 @@ import TestSolverPage from "./Components/TestSolverPage/TestSolverPage";
 import StudentTestPage from "./Components/TestViewPage/StudentTestPage";
 import KnowledgeDomainPage from "./Components/KnowledgeDomain/KnowledgeDomainPage";
 import CreateKnowledgeDomain from "./Components/KnowledgeDomain/CreateKnowledgeDomain";
+import "react-toastify/dist/ReactToastify.css"; // Uvozi stilove za Toastify
 
 function App() {
   const isAuthenticated = !!localStorage.getItem("token");
