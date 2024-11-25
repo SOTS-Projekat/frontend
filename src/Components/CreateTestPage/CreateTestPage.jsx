@@ -7,7 +7,6 @@ import Question from "./Question"; // Import your Question component
 import TestService from "../Services/TestService";
 import DropdownList from "../UI/DropdownList";
 import KnowledgeDomainService from "../Services/KnowledgeDomainService";
-import { getDecodedToken } from "../../hooks/authUtils";
 import { toast } from "react-toastify";
 
 const CreateTestPage = () => {
@@ -18,6 +17,45 @@ const CreateTestPage = () => {
   const [knowledgeDomainOptions, setKnowledgeDomainOptions] = useState([]);
   const [nodeOptions, setNodeOptions] = useState([]);
   const [knowledgeDomains, setKnowledgeDomains] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [tests, setTests] = useState([]);
+  
+
+  const fetchTests = async () => {
+    try {
+      const data = await TestService.getAllTests(); // Assuming TestService has this method
+      setTests(data);
+    } catch (error) {
+      console.error("Error fetching tests:", error.message);
+    }
+  };
+
+  const fetchKnowledgeDomains = async () => {
+    try {
+      const data = await KnowledgeDomainService.getById();
+      setKnowledgeDomains(data);
+
+      const knowledgeDomainData = [];
+      data.map((item) => {
+        knowledgeDomainData.push({
+          value: item.id,
+          label: item.name,
+        });
+      });
+
+      setKnowledgeDomainOptions(knowledgeDomainData);
+    } catch (error) {
+      console.error("Error fetching and processing data:", error.message);
+    }
+  };
+
+  const handleSearchChange = (event) => {
+    setSearchTerm(event.target.value.toLowerCase());
+  };
+
+  const filteredTests = tests.filter((test) =>
+    test.title.toLowerCase().includes(searchTerm)
+  );
 
   const handleAddQuestion = (question) => {
     setQuestions((prevState) => [...prevState, question]);
@@ -55,24 +93,6 @@ const CreateTestPage = () => {
     setNodeOptions(nodeOptionsData);
   };
 
-  const fetchKnowledgeDomains = async () => {
-    try {
-      const data = await KnowledgeDomainService.getById();
-      setKnowledgeDomains(data);
-
-      const knowledgeDomainData = [];
-      data.map((item) => {
-        knowledgeDomainData.push({
-          value: item.id,
-          label: item.name,
-        });
-      });
-
-      setKnowledgeDomainOptions(knowledgeDomainData);
-    } catch (error) {
-      console.error("Error fetching and processing data:", error.message);
-    }
-  };
   const handleOpenAddQuestionModal = () => {
     if (selectedKnowledgeDomains.length == 0) {
       toast.info("Select at least one domain of knowledge.");
@@ -83,6 +103,7 @@ const CreateTestPage = () => {
 
   useEffect(() => {
     fetchKnowledgeDomains();
+    fetchTests();
   }, []);
 
   return (
@@ -149,7 +170,41 @@ const CreateTestPage = () => {
         <div>
           <Button text="Create test" onClick={() => handleCreateTest()} />
         </div>
+
+        {/* Search and Test List */}
+        <div className={classes.testsSection}>
+          <input
+            type="text"
+            className={classes.searchInput}
+            placeholder="Search tests..."
+            value={searchTerm}
+            onChange={handleSearchChange}
+          />
+          <div className={classes.grid}>
+            {filteredTests.length === 0 ? (
+              <div className={classes.emptyMessage}>No tests found.</div>
+            ) : (
+              filteredTests.map((test) => (
+                <div
+                  key={test.id}
+                  className={classes.card}
+                  onClick={() => console.log(`Selected test: ${test.id}`)}
+                >
+                  <div className={classes.cardHeader}>
+                    <h3>{test.title}</h3>
+                  </div>
+                  <div className={classes.cardFooter}>
+                    <span>
+                      Created on: {new Date(test.createdAt).toLocaleDateString()}
+                    </span>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
       </div>
+
     </div>
   );
 };

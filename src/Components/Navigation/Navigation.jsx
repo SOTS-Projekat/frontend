@@ -13,7 +13,7 @@ export default function Navigation() {
   const handleLogout = () => {
     localStorage.setItem("session", JSON.stringify(""));
     localStorage.removeItem("token");
-    navigate("");
+    navigate("/");
   };
 
   return (

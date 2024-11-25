@@ -74,6 +74,29 @@ const TestService = {
       throw new Error(error.message || "Failed to create test");
     }
   },
+
+  getAllTests: async () => {
+    const session = useSession();
+    try {
+      const response = await fetch(`${API_URL}` + '/all', {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      throw new Error(error.message || "Failed to fetch all tests");
+    }
+  },
+
 };
 
 export default TestService;
