@@ -14,6 +14,11 @@ const KnowledgeDomainList = ({ knowledgeDomains, onSelect }) => {
     navigate("create");
   };
 
+  const handleSelectDomain = (domainId) => {
+    console.log(`Navigating to edit domain with ID: ${domainId}`);
+    navigate(`/knowledge-domain/${domainId}`);
+  };
+
   const filteredDomains = knowledgeDomains.filter((domain) =>
     domain.name.toLowerCase().includes(searchTerm)
   );
@@ -40,7 +45,7 @@ const KnowledgeDomainList = ({ knowledgeDomains, onSelect }) => {
             <div
               key={domain.id}
               className={styles.card}
-              onClick={() => onSelect(domain.id)}
+              onClick={() => handleSelectDomain(domain.id)}
             >
               <div className={styles.cardHeader}>
                 <h3 className={styles.domainName}>{domain.name}</h3>

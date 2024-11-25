@@ -54,6 +54,32 @@ const KnowledgeDomainService = {
       throw new Error(error.message || "Failed to get test!");
     }
   },
+
+  getOneById: async (id) => {
+    const session = useSession();
+    try {
+      const response = await fetch(`${API_URL}/getById/${id}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      throw new Error(error.message || "Failed to get the knowledge domain by id.");
+    }
+  },
+
+
 };
+
+
 
 export default KnowledgeDomainService;

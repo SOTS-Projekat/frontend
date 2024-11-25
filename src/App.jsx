@@ -11,6 +11,7 @@ import StudentTestPage from "./Components/TestViewPage/StudentTestPage";
 import KnowledgeDomainPage from "./Components/KnowledgeDomain/KnowledgeDomainPage";
 import CreateKnowledgeDomain from "./Components/KnowledgeDomain/CreateKnowledgeDomain";
 import "react-toastify/dist/ReactToastify.css"; // Uvozi stilove za Toastify
+import EditKnowledgeDomain from "./Components/KnowledgeDomain/EditKnowledgeDomain";
 
 function App() {
   const isAuthenticated = !!localStorage.getItem("token");
@@ -74,6 +75,14 @@ function App() {
           element: (
             <ProtectedRoute>
               <CreateKnowledgeDomain />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: "knowledge-domain/:id",
+          element: (
+            <ProtectedRoute>
+              <EditKnowledgeDomain/>
             </ProtectedRoute>
           ),
         },

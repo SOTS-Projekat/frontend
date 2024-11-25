@@ -8,8 +8,11 @@ import TestService from "../Services/TestService";
 import DropdownList from "../UI/DropdownList";
 import KnowledgeDomainService from "../Services/KnowledgeDomainService";
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router";
+import { getDecodedToken } from "../../hooks/authUtils";
 
 const CreateTestPage = () => {
+  const navigate = useNavigate();
   const [title, setTitle] = useState("");
   const [showAddQuestionModal, setShowAddQuestionModal] = useState(false);
   const [questions, setQuestions] = useState([]);
@@ -19,11 +22,13 @@ const CreateTestPage = () => {
   const [knowledgeDomains, setKnowledgeDomains] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [tests, setTests] = useState([]);
-  
+  const decodedToken = getDecodedToken();
+
+  const role = decodedToken?.role;
 
   const fetchTests = async () => {
     try {
-      const data = await TestService.getAllTests(); // Assuming TestService has this method
+      const data = await TestService.getAllTests();
       setTests(data);
     } catch (error) {
       console.error("Error fetching tests:", error.message);
@@ -101,78 +106,28 @@ const CreateTestPage = () => {
     }
   };
 
+  const handleTestClick = (testId) => {
+    navigate(`/test/${testId}`);
+  };
+
   useEffect(() => {
     fetchKnowledgeDomains();
     fetchTests();
   }, []);
 
-  return (
-    <div className={classes.container}>
-      {showAddQuestionModal && (
-        <AddQuestionModal
-          onCreate={handleAddQuestion}
-          onClose={() => setShowAddQuestionModal(false)}
-          nodeOptionsProp={nodeOptions}
-        />
-      )}
-      <div className={classes["test-container"]}>
-        <div className={classes.header}>
-          <h1>Kreiraj test</h1>
-        </div>
-        <div className={classes.content}>
-          <div className={classes["container-input"]}>
-            <div className={classes.input}>
-              <InputField
-                type="text"
-                label="Test name*"
-                placeholder="Insert name"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                error={""}
-                inputStyle={{ height: "40px" }}
-              />
-              <Button
-                text="Add question"
-                width="170px"
-                onClick={handleOpenAddQuestionModal}
-              />
-            </div>
-            <div className={classes.input}>
-              <DropdownList
-                label="Select knowledge domains*"
-                labelStyle={{ fontSize: "16px" }}
-                options={knowledgeDomainOptions ? knowledgeDomainOptions : []}
-                value={selectedKnowledgeDomains}
-                style={{ width: "300px" }}
-                mode={"multiple"}
-                allowClear={true}
-                onClear={() => setSelectedKnowledgeDomains([])}
-                onChangeDropdown={knowledgeDomainChangeHandler}
-                placeholder={"Select knowledge domains"}
-                size={"large"}
-                status={selectedKnowledgeDomains ? "success" : "error"}
-              />
-            </div>
-          </div>
+  if (!role) {
+    return (
+      <div className={classes.container}>
+        <h2>Access Denied</h2>
+        <p>You do not have permission to access this page.</p>
+      </div>
+    );
 
-          {/* Section for listing questions */}
-          <div className={classes["questions-list"]}>
-            {questions.map((question, index) => (
-              <Question
-                key={index}
-                serialNumber={index + 1}
-                question={question}
-                onDelete={() => handleDeleteQuestion(index)} // Pass delete handler
-              />
-            ))}
-          </div>
-        </div>
-        <div>
-          <Button text="Create test" onClick={() => handleCreateTest()} />
-        </div>
-
-        {/* Search and Test List */}
+  } else if (role === "STUDENT") {
+    return (
+      <div className={classes.container}>
         <div className={classes.testsSection}>
+        <h1>Izaberi test za polaganje</h1> 
           <input
             type="text"
             className={classes.searchInput}
@@ -188,7 +143,7 @@ const CreateTestPage = () => {
                 <div
                   key={test.id}
                   className={classes.card}
-                  onClick={() => console.log(`Selected test: ${test.id}`)}
+                  onClick={() => handleTestClick(test.id)}
                 >
                   <div className={classes.cardHeader}>
                     <h3>{test.title}</h3>
@@ -204,9 +159,119 @@ const CreateTestPage = () => {
           </div>
         </div>
       </div>
+    );
 
-    </div>
-  );
+  } else if (role === "PROFESSOR") {
+    return (
+      <div className={classes.container}>
+        {showAddQuestionModal && (
+          <AddQuestionModal
+            onCreate={handleAddQuestion}
+            onClose={() => setShowAddQuestionModal(false)}
+            nodeOptionsProp={nodeOptions}
+          />
+        )}
+        <div className={classes["test-container"]}>
+          <div className={classes.header}>
+            <h1>Kreiraj test</h1>
+          </div>
+          <div className={classes.content}>
+            <div className={classes["container-input"]}>
+              <div className={classes.input}>
+                <InputField
+                  type="text"
+                  label="Test name*"
+                  placeholder="Insert name"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  error={""}
+                  inputStyle={{ height: "40px" }}
+                />
+                <Button
+                  text="Add question"
+                  width="170px"
+                  onClick={handleOpenAddQuestionModal}
+                />
+              </div>
+              <div className={classes.input}>
+                <DropdownList
+                  label="Select knowledge domains*"
+                  labelStyle={{ fontSize: "16px" }}
+                  options={knowledgeDomainOptions || []}
+                  value={selectedKnowledgeDomains}
+                  style={{ width: "300px" }}
+                  mode={"multiple"}
+                  allowClear={true}
+                  onClear={() => setSelectedKnowledgeDomains([])}
+                  onChangeDropdown={knowledgeDomainChangeHandler}
+                  placeholder={"Select knowledge domains"}
+                  size={"large"}
+                  status={selectedKnowledgeDomains ? "success" : "error"}
+                />
+              </div>
+            </div>
+
+            {/* Section for listing questions */}
+            <div className={classes["questions-list"]}>
+              {questions.map((question, index) => (
+                <Question
+                  key={index}
+                  serialNumber={index + 1}
+                  question={question}
+                  onDelete={() => handleDeleteQuestion(index)} 
+                />
+              ))}
+            </div>
+          </div>
+          <div>
+            <Button text="Create test" onClick={handleCreateTest} />
+          </div>
+
+          {/* Search and Test List */}
+          <div className={classes.testsSection}>
+            <input
+              type="text"
+              className={classes.searchInput}
+              placeholder="Search tests..."
+              value={searchTerm}
+              onChange={handleSearchChange}
+            />
+            <div className={classes.grid}>
+              {filteredTests.length === 0 ? (
+                <div className={classes.emptyMessage}>No tests found.</div>
+              ) : (
+                filteredTests.map((test) => (
+                  <div
+                    key={test.id}
+                    className={classes.card}
+                    onClick={() => handleTestClick(test.id)}
+                  >
+                    <div className={classes.cardHeader}>
+                      <h3>{test.title}</h3>
+                    </div>
+                    <div className={classes.cardFooter}>
+                      <span>
+                        Created on: {new Date(test.createdAt).toLocaleDateString()}
+                      </span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+
+  } else {
+    return (
+      <div className={classes.container}>
+        <h2>Access Denied</h2>
+        <p>Your role does not have permission to access this page.</p>
+      </div>
+    );
+  }
 };
+
 
 export default CreateTestPage;
