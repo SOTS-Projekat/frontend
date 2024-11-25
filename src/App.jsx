@@ -13,6 +13,7 @@ import CreateKnowledgeDomain from "./Components/KnowledgeDomain/CreateKnowledgeD
 
 function App() {
   const isAuthenticated = !!localStorage.getItem("token");
+  console.log(isAuthenticated);
 
   const router = createHashRouter([
     {
@@ -25,35 +26,55 @@ function App() {
     },
     {
       path: "/",
-      element: (
-        <ProtectedRoute>
-          <Layout />
-        </ProtectedRoute>
-      ),
+      element: <Layout />,
       children: [
         {
           path: "home",
-          element: <HomePage />,
+          element: (
+            <ProtectedRoute>
+              <HomePage />
+            </ProtectedRoute>
+          ),
         },
         {
           path: "test",
-          element: <CreateTestPage />,
+          element: (
+            <ProtectedRoute>
+              <CreateTestPage />
+            </ProtectedRoute>
+          ),
         },
         {
           path: "test/:id",
-          element: <TestSolverPage />,
+          element: (
+            <ProtectedRoute>
+              <TestSolverPage />
+            </ProtectedRoute>
+          ),
         },
         {
           path: "test/result/:id",
-          element: <StudentTestPage />,
+          element: (
+            <ProtectedRoute>
+              <StudentTestPage />
+            </ProtectedRoute>
+          ),
         },
         {
           path: "knowledge-domain",
-          element: <KnowledgeDomainPage />,
+          element: (
+            <ProtectedRoute>
+              <KnowledgeDomainPage />
+            </ProtectedRoute>
+          ),
         },
         {
           path: "knowledge-domain/create",
-          element: <CreateKnowledgeDomain />,
+          element: (
+            <ProtectedRoute>
+              <CreateKnowledgeDomain />
+            </ProtectedRoute>
+          ),
         },
       ],
     },
