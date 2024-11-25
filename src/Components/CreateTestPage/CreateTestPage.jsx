@@ -73,6 +73,13 @@ const CreateTestPage = () => {
       console.error("Error fetching and processing data:", error.message);
     }
   };
+  const handleOpenAddQuestionModal = () => {
+    if (selectedKnowledgeDomains.length == 0) {
+      toast.info("Select at least one domain of knowledge.");
+    } else {
+      setShowAddQuestionModal(true);
+    }
+  };
 
   useEffect(() => {
     fetchKnowledgeDomains();
@@ -106,7 +113,7 @@ const CreateTestPage = () => {
               <Button
                 text="Add question"
                 width="170px"
-                onClick={() => setShowAddQuestionModal(true)}
+                onClick={handleOpenAddQuestionModal}
               />
             </div>
             <div className={classes.input}>
