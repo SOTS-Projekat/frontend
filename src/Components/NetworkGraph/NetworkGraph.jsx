@@ -158,7 +158,32 @@ const NetworkGraph = () => {
       })
       .attr("stroke", "black")
       .attr("stroke-width", 2)
-      .style("cursor", "pointer");
+      .style("cursor", "pointer")
+      .on("click", (event, d) => {
+        console.log(d);
+        event.stopPropagation(); 
+        const newName = prompt("Rename the connection:", d.name);
+        if (newName) {
+          setLinks((prevLinks) =>
+            prevLinks.map((link) =>
+              link.source === d.source && link.target === d.target
+                ? { ...link, name: newName }
+                : link
+            )
+          );
+        }
+      })
+      .on("contextmenu", (event, d) => {
+        event.preventDefault();  
+        const confirmDelete = window.confirm(`Are you sure you want to delete this link?`);
+        if (confirmDelete) {
+          setLinks((prevLinks) =>
+            prevLinks.filter(
+              (link) => !(link.source === d.source && link.target === d.target)
+            )
+          );
+        }
+      });
   
     link
       .exit()
@@ -189,7 +214,6 @@ const NetworkGraph = () => {
       .exit()
       .remove(); 
   
-    // Update nodes
     const node = svg.selectAll(".node").data(nodes, (d) => d.id);
   
     node
@@ -249,6 +273,12 @@ const NetworkGraph = () => {
     nodeLabel
       .exit()
       .remove(); 
+
+      //update nakon sto preimenujemo
+    nodeLabel  
+        .text((d) => d.name);
+    linkLabel
+        .text((d) => d.name);
   };
   
   
