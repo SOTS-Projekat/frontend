@@ -50,6 +50,7 @@ const NetworkGraph = () => {
   };
 
   const handleMiddleMouseDown = (event) => {
+    event.preventDefault();
     if (event.button !== 1) return;
 
     const svg = d3.select(svgRef.current);
@@ -77,17 +78,17 @@ const NetworkGraph = () => {
     }
 
     const handleMouseMove = (moveEvent) => {
-      if (tempLink) {
-        const moveCoords = d3.pointer(moveEvent);
-        tempLink
-          .attr("x2", moveCoords[0])
-          .attr("y2", moveCoords[1]);
-      }
+        if (tempLink) {
+            const moveCoords = d3.pointer(moveEvent);
+            tempLink
+            .attr("x2", moveCoords[0])
+            .attr("y2", moveCoords[1]);
+        }
+        
     };
 
     const handleMouseUp = (upEvent) => {
-        upEvent.stopPropagation();
-        
+    
         const moveCoords = d3.pointer(upEvent);
         const targetNode = nodes.find((node) => {
             const distance = Math.sqrt(
@@ -103,7 +104,7 @@ const NetworkGraph = () => {
             
             setLinks((prevLinks) => {
                 const updatedLinks = [...prevLinks, newLink];
-                console.log("Created link:", newLink);  // Log the newly created link
+                console.log("Created link:", newLink);  
                 return updatedLinks;
             });
             }
@@ -114,8 +115,7 @@ const NetworkGraph = () => {
             tempLink = null;
         }
 
-        svg.on("mousemove", null);
-        svg.on("mouseup", null);
+        
         };
 
         svg.on("mousemove", handleMouseMove);
@@ -123,7 +123,7 @@ const NetworkGraph = () => {
   };
 
   const handleRightClick = (event, node) => {
-    event.preventDefault();  // Prevent the default right-click menu
+    event.preventDefault();  
 
     const confirmDelete = window.confirm(`Are you sure you want to delete node ${node.name}?`);
     if (confirmDelete) {
@@ -134,6 +134,7 @@ const NetworkGraph = () => {
 
   const updateGraph = () => {
     const svg = d3.select(svgRef.current);
+
     const link = svg.selectAll(".link").data(links, (d) => `${d.source}-${d.target}`);
   
     link
