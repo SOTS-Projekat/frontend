@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import UserService from '../Services/UserService'; 
 import GraphSetup from '../GraphForStudentAnswers/GraphSetup';
 import './HomePage.scss'; 
+import NetworkGraph from '../NetworkGraph/NetworkGraph';
 
 const HomePage = () => {
     const [students, setStudents] = useState([]);
@@ -39,7 +40,7 @@ const HomePage = () => {
 
             <div className="graph-section">
                 <h3>Graph:</h3>
-                <GraphSetup />
+                <NetworkGraph />
             </div>
         </div>
     );
