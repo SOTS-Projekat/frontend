@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import styles from "./CreateKnowledgeDomain.module.scss";
-import GraphBuilder from "../GraphForStudentAnswers/GraphBuilder";
 import { getDecodedToken } from "../../hooks/authUtils";
 import KnowledgeDomainService from "../Services/KnowledgeDomainService";
 import { useNavigate } from "react-router";
+import NetworkGraph from "../NetworkGraph/NetworkGraph";
 
 const CreateKnowledgeDomain = () => {
   const [domainName, setDomainName] = useState("");
@@ -76,7 +76,7 @@ const CreateKnowledgeDomain = () => {
         {error && <div className={styles.error}>{error}</div>}
       </div>
 
-      <GraphBuilder onSaveGraph={handleGraphSave} />
+      <NetworkGraph onSaveGraph={handleGraphSave} />
 
       <button onClick={handleSave} className={styles.saveButton}>
         Save Knowledge Domain

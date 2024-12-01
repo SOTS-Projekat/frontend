@@ -2,9 +2,12 @@ import React, { useRef, useState, useEffect } from "react";
 import * as d3 from "d3";
 import styles from "./NetworkGraph.module.scss";
 
-let nextNodeId = 0;
+const NetworkGraph = ({ onSaveGraph }) => {
+  const [graphData, setGraphData] = useState({
+    nodes: [],
+    links: [],
+  });
 
-const NetworkGraph = () => {
   const svgRef = useRef(null);
   const [nodes, setNodes] = useState([]);
   const [links, setLinks] = useState([]);
@@ -37,10 +40,11 @@ const NetworkGraph = () => {
   };
 
   const createNode = (x, y) => {
+    const newNodeId = crypto.randomUUID();
     const name = prompt("Name a new node:");
     if (name) {
       const newNode = {
-        id: nextNodeId++,
+        id: newNodeId,
         name: name,
         x: x,
         y: y,
@@ -282,7 +286,17 @@ const NetworkGraph = () => {
         .text((d) => d.name);
   };
   
-  
+  useEffect(() => {
+    setGraphData({ nodes, links });
+  }, [nodes, links]);
+
+  const handleSaveGraph = () => {
+    console.log("Graph Data:", graphData);
+    if (onSaveGraph) {
+      onSaveGraph(graphData);
+    }
+  };
+
   useEffect(() => {
     updateGraph();
   }, [nodes, links]);
@@ -295,6 +309,9 @@ const NetworkGraph = () => {
         onClick={handleSvgClick}
         onMouseDown={handleMiddleMouseDown}
       ></svg>
+      <button onClick={handleSaveGraph} className={styles.saveButton}>
+        Save Graph
+      </button>
     </div>
   );
 };
