@@ -49,7 +49,11 @@ const NetworkGraph = ({ onSaveGraph }) => {
         x: x,
         y: y,
       };
-      setNodes((prevNodes) => [...prevNodes, newNode]);
+      setNodes((prevNodes) => {
+        const updatedNodes = [...prevNodes, newNode];
+        setGraphData({ nodes: updatedNodes, links }); //Odmah u metodi stavimo, umesto na kraju da zovemo uz useEffect
+        return updatedNodes;
+      });
     }
   };
 
@@ -92,49 +96,57 @@ const NetworkGraph = ({ onSaveGraph }) => {
     };
 
     const handleMouseUp = (upEvent) => {
-    
-        const moveCoords = d3.pointer(upEvent);
-        const targetNode = nodes.find((node) => {
-            const distance = Math.sqrt(
+      const moveCoords = d3.pointer(upEvent);
+      const targetNode = nodes.find((node) => {
+          const distance = Math.sqrt(
             Math.pow(moveCoords[0] - node.x, 2) + Math.pow(moveCoords[1] - node.y, 2)
-            );
-            return distance < 30;
-        });
+          );
+          return distance < 30;
+      });
+    
+      if (targetNode && selectedNode !== targetNode) {
+          const linkName = prompt("Name the connection:");
+          if (linkName) {
+              const newLink = { source: selectedNode, target: targetNode, name: linkName };
+              setLinks((prevLinks) => {
+                  const updatedLinks = [...prevLinks, newLink];
+                  setGraphData({ nodes, links: updatedLinks });
+                  return updatedLinks;
+              });
+          }
+      }
 
-        if (targetNode && selectedNode !== targetNode) {
-            const linkName = prompt("Name the connection:");
-            if (linkName) {
-            const newLink = { source: selectedNode, target: targetNode, name: linkName };
-            
-            setLinks((prevLinks) => {
-                const updatedLinks = [...prevLinks, newLink];
-                console.log("Created link:", newLink);  
-                return updatedLinks;
-            });
-            }
-        }
-
-        if (tempLink) {
-            tempLink.remove();
-            tempLink = null;
-        }
-
-        
-        };
-
-        svg.on("mousemove", handleMouseMove);
-        svg.on("mouseup", handleMouseUp);
-  };
-
-  const handleRightClick = (event, node) => {
-    event.preventDefault();  
-
-    const confirmDelete = window.confirm(`Are you sure you want to delete node ${node.name}?`);
-    if (confirmDelete) {
-      setNodes((prevNodes) => prevNodes.filter((n) => n.id !== node.id));
-      setLinks((prevLinks) => prevLinks.filter((link) => link.source !== node.id && link.target !== node.id));
+      if (tempLink) {
+          tempLink.remove();
+          tempLink = null;
+      }
     }
-  };
+
+  svg.on("mousemove", handleMouseMove);
+  svg.on("mouseup", handleMouseUp);
+};
+
+const handleRightClick = (event, node) => {
+  event.preventDefault();
+  event.stopPropagation();
+
+  const confirmDelete = window.confirm(`Are you sure you want to delete node ${node.name}?`);
+  if (confirmDelete) {
+    setNodes((prevNodes) => {
+      const updatedNodes = prevNodes.filter((n) => n.id !== node.id);
+      setLinks((prevLinks) => prevLinks.filter((link) => link.source.id !== node.id && link.target.id !== node.id));
+      setGraphData({ nodes: updatedNodes, links: links });
+      return updatedNodes;
+    });
+  }
+};
+
+const handleSaveGraph = () => {
+  console.log("Graph Data:", graphData);
+  if (onSaveGraph) {
+    onSaveGraph(graphData);
+  }
+};
 
   const updateGraph = () => {
     const svg = d3.select(svgRef.current);
@@ -146,19 +158,19 @@ const NetworkGraph = ({ onSaveGraph }) => {
       .append("line")
       .attr("class", "link")
       .attr("x1", (d) => {
-        const sourceNode = nodes.find((node) => node.id === d.source);
+        const sourceNode = nodes.find((node) => node.id === d.source.id);
         return sourceNode ? sourceNode.x : 0;
       })
       .attr("y1", (d) => {
-        const sourceNode = nodes.find((node) => node.id === d.source);
+        const sourceNode = nodes.find((node) => node.id === d.source.id);
         return sourceNode ? sourceNode.y : 0;
       })
       .attr("x2", (d) => {
-        const targetNode = nodes.find((node) => node.id === d.target);
+        const targetNode = nodes.find((node) => node.id === d.target.id);
         return targetNode ? targetNode.x : 0;
       })
       .attr("y2", (d) => {
-        const targetNode = nodes.find((node) => node.id === d.target);
+        const targetNode = nodes.find((node) => node.id === d.target.id);
         return targetNode ? targetNode.y : 0;
       })
       .attr("stroke", "black")
@@ -171,7 +183,7 @@ const NetworkGraph = ({ onSaveGraph }) => {
         if (newName) {
           setLinks((prevLinks) =>
             prevLinks.map((link) =>
-              link.sourceNode.id === d.sourceNode.id && link.targetNode.id === d.targetNode.id
+              link.source.id === d.source.id && link.target.id === d.target.id
                 ? { ...link, name: newName }
                 : link
             )
@@ -285,21 +297,11 @@ const NetworkGraph = ({ onSaveGraph }) => {
     linkLabel
         .text((d) => d.name);
   };
-  
-  useEffect(() => {
-    setGraphData({ nodes, links });
-  }, [nodes, links]);
-
-  const handleSaveGraph = () => {
-    console.log("Graph Data:", graphData);
-    if (onSaveGraph) {
-      onSaveGraph(graphData);
-    }
-  };
 
   useEffect(() => {
     updateGraph();
   }, [nodes, links]);
+
 
   return (
     <div className={styles.wrapper}>
