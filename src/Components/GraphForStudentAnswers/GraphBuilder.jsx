@@ -83,6 +83,7 @@ const GraphBuilder = ({ onSaveGraph }) => {
 
   // Čuvanje grafa
   const handleSaveGraph = () => {
+    console.log("Graph Data:", graphData);
     if (onSaveGraph) {
       onSaveGraph(graphData);
     }

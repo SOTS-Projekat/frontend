@@ -104,7 +104,7 @@ const NetworkGraph = ({ onSaveGraph }) => {
         if (targetNode && selectedNode !== targetNode) {
             const linkName = prompt("Name the connection:");
             if (linkName) {
-            const newLink = { source: selectedNode.id, target: targetNode.id, name: linkName };
+            const newLink = { source: selectedNode, target: targetNode, name: linkName };
             
             setLinks((prevLinks) => {
                 const updatedLinks = [...prevLinks, newLink];
@@ -171,7 +171,7 @@ const NetworkGraph = ({ onSaveGraph }) => {
         if (newName) {
           setLinks((prevLinks) =>
             prevLinks.map((link) =>
-              link.source === d.source && link.target === d.target
+              link.sourceNode.id === d.sourceNode.id && link.targetNode.id === d.targetNode.id
                 ? { ...link, name: newName }
                 : link
             )
@@ -184,7 +184,7 @@ const NetworkGraph = ({ onSaveGraph }) => {
         if (confirmDelete) {
           setLinks((prevLinks) =>
             prevLinks.filter(
-              (link) => !(link.source === d.source && link.target === d.target)
+              (link) => !(link.source.id === d.source.id && link.target.id === d.target.id)
             )
           );
         }
@@ -194,20 +194,20 @@ const NetworkGraph = ({ onSaveGraph }) => {
       .exit()
       .remove();  
   
-    const linkLabel = svg.selectAll(".link-label").data(links, (d) => `${d.source}-${d.target}`);
+    const linkLabel = svg.selectAll(".link-label").data(links, (d) => `${d.source.id}-${d.target.id}`);
   
     linkLabel
       .enter()
       .append("text")
       .attr("class", "link-label")
       .attr("x", (d) => {
-        const sourceNode = nodes.find((node) => node.id === d.source);
-        const targetNode = nodes.find((node) => node.id === d.target);
+        const sourceNode = nodes.find((node) => node.id === d.source.id);
+        const targetNode = nodes.find((node) => node.id === d.target.id);
         return (sourceNode.x + targetNode.x) / 2;
       })
       .attr("y", (d) => {
-        const sourceNode = nodes.find((node) => node.id === d.source);
-        const targetNode = nodes.find((node) => node.id === d.target);
+        const sourceNode = nodes.find((node) => node.id === d.source.id);
+        const targetNode = nodes.find((node) => node.id === d.target.id);
         return (sourceNode.y + targetNode.y) / 2 - 10; 
       })
       .attr("text-anchor", "middle")
