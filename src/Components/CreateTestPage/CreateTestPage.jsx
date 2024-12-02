@@ -100,7 +100,8 @@ const CreateTestPage = () => {
 
   const handleOpenAddQuestionModal = () => {
     if (selectedKnowledgeDomains.length == 0) {
-      toast.info("Select at least one domain of knowledge.");
+      //toast.info("Select at least one domain of knowledge.");
+      setShowAddQuestionModal(true);
     } else {
       setShowAddQuestionModal(true);
     }
@@ -122,12 +123,11 @@ const CreateTestPage = () => {
         <p>You do not have permission to access this page.</p>
       </div>
     );
-
   } else if (role === "STUDENT") {
     return (
       <div className={classes.container}>
         <div className={classes.testsSection}>
-        <h1>Izaberi test za polaganje</h1> 
+          <h1>Izaberi test za polaganje</h1>
           <input
             type="text"
             className={classes.searchInput}
@@ -150,7 +150,8 @@ const CreateTestPage = () => {
                   </div>
                   <div className={classes.cardFooter}>
                     <span>
-                      Created on: {new Date(test.createdAt).toLocaleDateString()}
+                      Created on:{" "}
+                      {new Date(test.createdAt).toLocaleDateString()}
                     </span>
                   </div>
                 </div>
@@ -160,7 +161,6 @@ const CreateTestPage = () => {
         </div>
       </div>
     );
-
   } else if (role === "PROFESSOR") {
     return (
       <div className={classes.container}>
@@ -218,7 +218,7 @@ const CreateTestPage = () => {
                   key={index}
                   serialNumber={index + 1}
                   question={question}
-                  onDelete={() => handleDeleteQuestion(index)} 
+                  onDelete={() => handleDeleteQuestion(index)}
                 />
               ))}
             </div>
@@ -251,7 +251,8 @@ const CreateTestPage = () => {
                     </div>
                     <div className={classes.cardFooter}>
                       <span>
-                        Created on: {new Date(test.createdAt).toLocaleDateString()}
+                        Created on:{" "}
+                        {new Date(test.createdAt).toLocaleDateString()}
                       </span>
                     </div>
                   </div>
@@ -262,7 +263,6 @@ const CreateTestPage = () => {
         </div>
       </div>
     );
-
   } else {
     return (
       <div className={classes.container}>
@@ -272,6 +272,5 @@ const CreateTestPage = () => {
     );
   }
 };
-
 
 export default CreateTestPage;

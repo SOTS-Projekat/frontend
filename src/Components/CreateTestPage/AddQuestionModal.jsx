@@ -80,22 +80,24 @@ const AddQuestionModal = ({ onCreate, onClose, nodeOptionsProp }) => {
               error={""}
             />
           </div>
-          <div>
-            <DropdownList
-              label="Connect node*"
-              labelStyle={{ fontSize: "16px" }}
-              options={nodeOptions ? nodeOptions : []}
-              value={selectedNode}
-              style={{ width: "auto" }}
-              //mode={"multiple"}
-              allowClear={true}
-              onClear={() => setSelectedNode()}
-              onChangeDropdown={nodeChangeHandler}
-              placeholder={"Select node"}
-              size={"large"}
-              status={selectedNode ? "success" : "error"}
-            />
-          </div>
+          {nodeOptions.length != 0 && (
+            <div>
+              <DropdownList
+                label="Connect node*"
+                labelStyle={{ fontSize: "16px" }}
+                options={nodeOptions ? nodeOptions : []}
+                value={selectedNode}
+                style={{ width: "auto" }}
+                //mode={"multiple"}
+                allowClear={true}
+                onClear={() => setSelectedNode()}
+                onChangeDropdown={nodeChangeHandler}
+                placeholder={"Select node"}
+                size={"large"}
+                status={selectedNode ? "success" : "error"}
+              />
+            </div>
+          )}
           <div className={classes["question-input"]}>
             <TextAreaField
               type="text"
