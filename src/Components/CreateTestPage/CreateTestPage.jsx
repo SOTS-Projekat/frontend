@@ -16,7 +16,7 @@ const CreateTestPage = () => {
   const [title, setTitle] = useState("");
   const [showAddQuestionModal, setShowAddQuestionModal] = useState(false);
   const [questions, setQuestions] = useState([]);
-  const [selectedKnowledgeDomains, setSelectedKnowledgeDomains] = useState([]);
+  const [selectedKnowledgeDomain, setSelectedKnowledgeDomain] = useState();
   const [knowledgeDomainOptions, setKnowledgeDomainOptions] = useState([]);
   const [nodeOptions, setNodeOptions] = useState([]);
   const [knowledgeDomains, setKnowledgeDomains] = useState([]);
@@ -74,34 +74,33 @@ const CreateTestPage = () => {
 
   const handleCreateTest = () => {
     if (questions.length !== 0 && title !== "") {
-      TestService.createTest({ title: title, questions: questions });
+      TestService.createTest({
+        title: title,
+        knowledgeDomainId: selectedKnowledgeDomain,
+        questions: questions,
+      });
     } else {
       toast.info("Morate dodati naslov i pitanja");
     }
   };
 
   const knowledgeDomainChangeHandler = (value) => {
-    setSelectedKnowledgeDomains(value);
+    setSelectedKnowledgeDomain(value);
     const nodeOptionsData = [];
-    for (let i = 0; i < value.length; i++) {
-      const knowledgeDomain = knowledgeDomains.find(
-        (item) => item.id === value[i]
-      );
-      knowledgeDomain.nodes.map((item) => {
-        nodeOptionsData.push({
-          value: item.id,
-          label: item.label,
-        });
+    const knowledgeDomain = knowledgeDomains.find((item) => item.id === value);
+    knowledgeDomain.nodes.map((item) => {
+      nodeOptionsData.push({
+        value: item.id,
+        label: item.label,
       });
-    }
-
+    });
+    console.log(nodeOptionsData);
     setNodeOptions(nodeOptionsData);
   };
 
   const handleOpenAddQuestionModal = () => {
-    if (selectedKnowledgeDomains.length == 0) {
-      //toast.info("Select at least one domain of knowledge.");
-      setShowAddQuestionModal(true);
+    if (selectedKnowledgeDomain.length) {
+      toast.info("Select knowledge domain.");
     } else {
       setShowAddQuestionModal(true);
     }
@@ -198,15 +197,15 @@ const CreateTestPage = () => {
                   label="Select knowledge domains*"
                   labelStyle={{ fontSize: "16px" }}
                   options={knowledgeDomainOptions || []}
-                  value={selectedKnowledgeDomains}
+                  value={selectedKnowledgeDomain}
                   style={{ width: "300px" }}
-                  mode={"multiple"}
+                  //mode={"multiple"}
                   allowClear={true}
-                  onClear={() => setSelectedKnowledgeDomains([])}
+                  onClear={() => setSelectedKnowledgeDomain()}
                   onChangeDropdown={knowledgeDomainChangeHandler}
-                  placeholder={"Select knowledge domains"}
+                  placeholder={"Select knowledge domain"}
                   size={"large"}
-                  status={selectedKnowledgeDomains ? "success" : "error"}
+                  status={selectedKnowledgeDomain ? "success" : "error"}
                 />
               </div>
             </div>
