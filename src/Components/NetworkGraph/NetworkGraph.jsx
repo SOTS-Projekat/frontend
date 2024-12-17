@@ -2,17 +2,27 @@ import React, { useRef, useState, useEffect } from "react";
 import * as d3 from "d3";
 import styles from "./NetworkGraph.module.scss";
 
-const NetworkGraph = ({ onSaveGraph }) => {
+const NetworkGraph = ({ onSaveGraph, initialNodes = [], initialLinks = [] }) => {
+
+  const [nodes, setNodes] = useState(initialNodes);
+  const [links, setLinks] = useState(initialLinks);
   const [graphData, setGraphData] = useState({
-    nodes: [],
-    links: [],
+    nodes: initialNodes,
+    links: initialLinks,
   });
 
   const svgRef = useRef(null);
-  const [nodes, setNodes] = useState([]);
-  const [links, setLinks] = useState([]);
   let tempLink = null;
   let selectedNode = null;
+
+  useEffect(() => {
+    setNodes(initialNodes);
+    setLinks(initialLinks);
+    setGraphData({
+      nodes: initialNodes,
+      links: initialLinks,
+    });
+  }, [initialNodes, initialLinks]);
 
   const handleSvgClick = (event) => {
     if (event.button === 0) {
@@ -56,6 +66,8 @@ const NetworkGraph = ({ onSaveGraph }) => {
       });
     }
   };
+
+  
 
   const handleMiddleMouseDown = (event) => {
     event.preventDefault();

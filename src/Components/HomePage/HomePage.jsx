@@ -39,10 +39,7 @@ const HomePage = () => {
                 <p>There are no students currently.</p>
             )}
 
-            <div className="graph-section">
-                <h3>Graph:</h3>
-                <GraphBuilder />
-            </div>
+        
         </div>
     );
 };
