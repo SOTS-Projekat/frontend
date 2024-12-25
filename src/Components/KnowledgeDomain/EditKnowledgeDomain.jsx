@@ -39,7 +39,7 @@ const EditKnowledgeDomain = () => {
     }
 
     if (!savedGraphData || savedGraphData.nodes.length === 0) {
-      setError("Please create and save a graph before submitting.");
+      setError("Please save a graph before submitting.");
       return;
     }
 

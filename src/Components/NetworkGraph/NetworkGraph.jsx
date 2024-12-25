@@ -2,27 +2,28 @@ import React, { useRef, useState, useEffect } from "react";
 import * as d3 from "d3";
 import styles from "./NetworkGraph.module.scss";
 
-const NetworkGraph = ({ onSaveGraph, initialNodes = [], initialLinks = [] }) => {
-
-  const [nodes, setNodes] = useState(initialNodes);
-  const [links, setLinks] = useState(initialLinks);
-  const [graphData, setGraphData] = useState({
-    nodes: initialNodes,
-    links: initialLinks,
-  });
+const NetworkGraph = ({ onSaveGraph, graphData }) => {
 
   const svgRef = useRef(null);
+  const [nodes, setNodes] = useState([]);
+  const [links, setLinks] = useState([]);
   let tempLink = null;
   let selectedNode = null;
 
+  const setGraphData = (newNodes, newLinks) => {
+    setNodes(newNodes);
+    setLinks(newLinks);
+  };
+
   useEffect(() => {
-    setNodes(initialNodes);
-    setLinks(initialLinks);
-    setGraphData({
-      nodes: initialNodes,
-      links: initialLinks,
-    });
-  }, [initialNodes, initialLinks]);
+    if (graphData) {
+      console.log("Graph data received:", graphData);
+      setNodes(graphData.nodes);
+      setLinks(graphData.links);
+    }
+  }, [graphData]);
+
+
 
   const handleSvgClick = (event) => {
     if (event.button === 0) {
@@ -35,11 +36,11 @@ const NetworkGraph = ({ onSaveGraph, initialNodes = [], initialLinks = [] }) => 
       });
 
       if (clickedNode) {
-        const newName = prompt("Rename the node:", clickedNode.name);
+        const newName = prompt("Rename the node:", clickedNode.label);
         if (newName) {
           setNodes((prevNodes) =>
             prevNodes.map((node) =>
-              node.id === clickedNode.id ? { ...node, name: newName } : node
+              node.id === clickedNode.id ? { ...node, label: newName } : node
             )
           );
         }
@@ -49,25 +50,22 @@ const NetworkGraph = ({ onSaveGraph, initialNodes = [], initialLinks = [] }) => 
     }
   };
 
-  const createNode = (x, y) => {
+  const createNode = () => {
     const newNodeId = crypto.randomUUID();
     const name = prompt("Name a new node:");
     if (name) {
       const newNode = {
         id: newNodeId,
-        name: name,
-        x: x,
-        y: y,
+        label: name,
       };
       setNodes((prevNodes) => {
         const updatedNodes = [...prevNodes, newNode];
-        setGraphData({ nodes: updatedNodes, links }); //Odmah u metodi stavimo, umesto na kraju da zovemo uz useEffect
+        setGraphData({ nodes: updatedNodes }); // Odmah u metodi stavimo, umesto na kraju da zovemo uz useEffect
         return updatedNodes;
       });
     }
   };
 
-  
 
   const handleMiddleMouseDown = (event) => {
     event.preventDefault();
@@ -119,7 +117,7 @@ const NetworkGraph = ({ onSaveGraph, initialNodes = [], initialLinks = [] }) => 
       if (targetNode && selectedNode !== targetNode) {
           const linkName = prompt("Name the connection:");
           if (linkName) {
-              const newLink = { source: selectedNode, target: targetNode, name: linkName };
+              const newLink = { sourceNode: selectedNode, targetNode: targetNode, label: linkName };
               setLinks((prevLinks) => {
                   const updatedLinks = [...prevLinks, newLink];
                   setGraphData({ nodes, links: updatedLinks });
@@ -142,11 +140,11 @@ const handleRightClick = (event, node) => {
   event.preventDefault();
   event.stopPropagation();
 
-  const confirmDelete = window.confirm(`Are you sure you want to delete node ${node.name}?`);
+  const confirmDelete = window.confirm(`Are you sure you want to delete node: ${node.label}?`);
   if (confirmDelete) {
     setNodes((prevNodes) => {
       const updatedNodes = prevNodes.filter((n) => n.id !== node.id);
-      setLinks((prevLinks) => prevLinks.filter((link) => link.source.id !== node.id && link.target.id !== node.id));
+      setLinks((prevLinks) => prevLinks.filter((link) => link.sourceNode.id !== node.id && link.targetNode.id !== node.id));
       setGraphData({ nodes: updatedNodes, links: links });
       return updatedNodes;
     });
@@ -163,26 +161,26 @@ const handleSaveGraph = () => {
   const updateGraph = () => {
     const svg = d3.select(svgRef.current);
 
-    const link = svg.selectAll(".link").data(links, (d) => `${d.source}-${d.target}`);
+    const link = svg.selectAll(".link").data(links, (d) => `${d.sourceNode}-${d.targetNode}`);
   
     link
       .enter()
       .append("line")
       .attr("class", "link")
       .attr("x1", (d) => {
-        const sourceNode = nodes.find((node) => node.id === d.source.id);
+        const sourceNode = nodes.find((node) => node.id === d.sourceNode.id);
         return sourceNode ? sourceNode.x : 0;
       })
       .attr("y1", (d) => {
-        const sourceNode = nodes.find((node) => node.id === d.source.id);
+        const sourceNode = nodes.find((node) => node.id === d.sourceNode.id);
         return sourceNode ? sourceNode.y : 0;
       })
       .attr("x2", (d) => {
-        const targetNode = nodes.find((node) => node.id === d.target.id);
+        const targetNode = nodes.find((node) => node.id === d.targetNode.id);
         return targetNode ? targetNode.x : 0;
       })
       .attr("y2", (d) => {
-        const targetNode = nodes.find((node) => node.id === d.target.id);
+        const targetNode = nodes.find((node) => node.id === d.targetNode.id);
         return targetNode ? targetNode.y : 0;
       })
       .attr("stroke", "black")
@@ -191,12 +189,12 @@ const handleSaveGraph = () => {
       .on("click", (event, d) => {
         console.log(d);
         event.stopPropagation(); 
-        const newName = prompt("Rename the connection:", d.name);
+        const newName = prompt("Rename the connection:", d.label);
         if (newName) {
           setLinks((prevLinks) =>
             prevLinks.map((link) =>
-              link.source.id === d.source.id && link.target.id === d.target.id
-                ? { ...link, name: newName }
+              link.sourceNode.id === d.sourceNode.id && link.targetNode.id === d.targetNode.id
+                ? { ...link, label: newName }
                 : link
             )
           );
@@ -208,7 +206,7 @@ const handleSaveGraph = () => {
         if (confirmDelete) {
           setLinks((prevLinks) =>
             prevLinks.filter(
-              (link) => !(link.source.id === d.source.id && link.target.id === d.target.id)
+              (link) => !(link.sourceNode.id === d.sourceNode.id && link.targetNode.id === d.targetNode.id)
             )
           );
         }
@@ -218,20 +216,20 @@ const handleSaveGraph = () => {
       .exit()
       .remove();  
   
-    const linkLabel = svg.selectAll(".link-label").data(links, (d) => `${d.source.id}-${d.target.id}`);
+    const linkLabel = svg.selectAll(".link-label").data(links, (d) => `${d.sourceNode.id}-${d.targetNode.id}`);
   
     linkLabel
       .enter()
       .append("text")
       .attr("class", "link-label")
       .attr("x", (d) => {
-        const sourceNode = nodes.find((node) => node.id === d.source.id);
-        const targetNode = nodes.find((node) => node.id === d.target.id);
+        const sourceNode = nodes.find((node) => node.id === d.sourceNode.id);
+        const targetNode = nodes.find((node) => node.id === d.targetNode.id);
         return (sourceNode.x + targetNode.x) / 2;
       })
       .attr("y", (d) => {
-        const sourceNode = nodes.find((node) => node.id === d.source.id);
-        const targetNode = nodes.find((node) => node.id === d.target.id);
+        const sourceNode = nodes.find((node) => node.id === d.sourceNode.id);
+        const targetNode = nodes.find((node) => node.id === d.targetNode.id);
         return (sourceNode.y + targetNode.y) / 2 - 10; 
       })
       .attr("text-anchor", "middle")
@@ -259,11 +257,11 @@ const handleSaveGraph = () => {
       .on("click", (event, d) => {
         event.stopPropagation();
         console.log(d);
-        const newName = prompt("Rename the node:", d.name);
+        const newName = prompt("Rename the node:", d.label);
         if (newName) {
           setNodes((prevNodes) =>
             prevNodes.map((node) =>
-              node.id === d.id ? { ...node, name: newName } : node
+              node.id === d.id ? { ...node, label: newName } : node
             )
           );
         }
@@ -295,7 +293,7 @@ const handleSaveGraph = () => {
       .attr("x", (d) => d.x)
       .attr("y", (d) => d.y + 35) // Position label a bit below the node
       .attr("text-anchor", "middle")
-      .text((d) => d.name)
+      .text((d) => d.label)
       .style("font-size", "12px")
       .style("fill", "black");
   
@@ -305,9 +303,9 @@ const handleSaveGraph = () => {
 
       //update nakon sto preimenujemo
     nodeLabel  
-        .text((d) => d.name);
+        .text((d) => d.label);
     linkLabel
-        .text((d) => d.name);
+        .text((d) => d.label);
   };
 
   useEffect(() => {
