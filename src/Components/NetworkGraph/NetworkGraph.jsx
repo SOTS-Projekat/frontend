@@ -7,12 +7,11 @@ const NetworkGraph = ({ onSaveGraph, graphData }) => {
   const svgRef = useRef(null);
   const [nodes, setNodes] = useState([]);
   const [links, setLinks] = useState([]);
-  let tempLink = null;
-  let selectedNode = null;
 
   const setGraphData = (newNodes, newLinks) => {
     setNodes(newNodes);
     setLinks(newLinks);
+    onSaveGraph({ nodes: newNodes, links: newLinks });
   };
 
   useEffect(() => {
@@ -22,7 +21,6 @@ const NetworkGraph = ({ onSaveGraph, graphData }) => {
       setLinks(graphData.links);
     }
   }, [graphData]);
-
 
 
   const handleSvgClick = (event) => {
@@ -50,91 +48,24 @@ const NetworkGraph = ({ onSaveGraph, graphData }) => {
     }
   };
 
-  const createNode = () => {
+  const createNode = (x, y) => {
     const newNodeId = crypto.randomUUID();
     const name = prompt("Name a new node:");
     if (name) {
       const newNode = {
         id: newNodeId,
         label: name,
+        x: x, // Set coordinates for the new node
+        y: y,
       };
       setNodes((prevNodes) => {
         const updatedNodes = [...prevNodes, newNode];
-        setGraphData({ nodes: updatedNodes }); // Odmah u metodi stavimo, umesto na kraju da zovemo uz useEffect
+        setGraphData(updatedNodes, links); // Odmah u metodi stavimo, umesto na kraju da zovemo uz useEffect
         return updatedNodes;
       });
     }
   };
 
-
-  const handleMiddleMouseDown = (event) => {
-    event.preventDefault();
-    if (event.button !== 1) return;
-
-    const svg = d3.select(svgRef.current);
-    const coords = d3.pointer(event);
-
-    const clickedNode = nodes.find((node) => {
-      const distance = Math.sqrt(
-        Math.pow(coords[0] - node.x, 2) + Math.pow(coords[1] - node.y, 2)
-      );
-      return distance < 30;
-    });
-
-    if (clickedNode) {
-      selectedNode = clickedNode;
-
-      tempLink = svg
-        .append("line")
-        .attr("class", "temp-link")
-        .attr("x1", clickedNode.x)
-        .attr("y1", clickedNode.y)
-        .attr("x2", clickedNode.x)
-        .attr("y2", clickedNode.y)
-        .attr("stroke", "grey")
-        .attr("stroke-width", 2);
-    }
-
-    const handleMouseMove = (moveEvent) => {
-        if (tempLink) {
-            const moveCoords = d3.pointer(moveEvent);
-            tempLink
-            .attr("x2", moveCoords[0])
-            .attr("y2", moveCoords[1]);
-        }
-        
-    };
-
-    const handleMouseUp = (upEvent) => {
-      const moveCoords = d3.pointer(upEvent);
-      const targetNode = nodes.find((node) => {
-          const distance = Math.sqrt(
-            Math.pow(moveCoords[0] - node.x, 2) + Math.pow(moveCoords[1] - node.y, 2)
-          );
-          return distance < 30;
-      });
-    
-      if (targetNode && selectedNode !== targetNode) {
-          const linkName = prompt("Name the connection:");
-          if (linkName) {
-              const newLink = { sourceNode: selectedNode, targetNode: targetNode, label: linkName };
-              setLinks((prevLinks) => {
-                  const updatedLinks = [...prevLinks, newLink];
-                  setGraphData({ nodes, links: updatedLinks });
-                  return updatedLinks;
-              });
-          }
-      }
-
-      if (tempLink) {
-          tempLink.remove();
-          tempLink = null;
-      }
-    }
-
-  svg.on("mousemove", handleMouseMove);
-  svg.on("mouseup", handleMouseUp);
-};
 
 const handleRightClick = (event, node) => {
   event.preventDefault();
@@ -144,8 +75,9 @@ const handleRightClick = (event, node) => {
   if (confirmDelete) {
     setNodes((prevNodes) => {
       const updatedNodes = prevNodes.filter((n) => n.id !== node.id);
+
       setLinks((prevLinks) => prevLinks.filter((link) => link.sourceNode.id !== node.id && link.targetNode.id !== node.id));
-      setGraphData({ nodes: updatedNodes, links: links });
+      setGraphData(updatedNodes, links);
       return updatedNodes;
     });
   }
@@ -319,7 +251,7 @@ const handleSaveGraph = () => {
         ref={svgRef}
         className={styles.svg}
         onClick={handleSvgClick}
-        onMouseDown={handleMiddleMouseDown}
+        
       ></svg>
       <button onClick={handleSaveGraph} className={styles.saveButton}>
         Save Graph

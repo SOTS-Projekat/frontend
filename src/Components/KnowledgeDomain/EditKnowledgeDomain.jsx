@@ -3,6 +3,7 @@ import styles from "./CreateKnowledgeDomain.module.scss";
 import { useNavigate, useParams } from "react-router";
 import KnowledgeDomainService from "../Services/KnowledgeDomainService";
 import NetworkGraph from "../NetworkGraph/NetworkGraph";
+import InputDataNetworkGraph from "../NetworkGraph/InputDataNetworkGraph";
 
 const EditKnowledgeDomain = () => {
   const { id } = useParams(); 
@@ -94,7 +95,7 @@ const EditKnowledgeDomain = () => {
         {error && <div className={styles.error}>{error}</div>}
       </div>
 
-      <NetworkGraph onSaveGraph={handleGraphSave} graphData={savedGraphData} />
+      <NetworkGraph onSaveGraph={handleGraphSave}  graphData={savedGraphData} />
 
       <button onClick={handleSave} className={styles.saveButton}>
         Save Knowledge Domain
