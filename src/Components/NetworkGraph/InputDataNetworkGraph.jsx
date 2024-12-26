@@ -1,135 +1,151 @@
-import React, { useRef, useEffect, useState } from "react";
-import * as d3 from "d3";
+import React, { useEffect } from 'react';
+import * as d3 from 'd3';
 
-const InputDataNetworkGraph = ({ graphData }) => {
-  const svgRef = useRef(null); // Reference for the SVG element
-  const [nodes, setNodes] = useState([]);
-  const [links, setLinks] = useState([]);
 
+
+const InputDataNetworkGraph = ({ }) => {
+
+    const graphData = {
+        nodes: [
+            { id: 'A', label: 'Node A', frontendId: 'node_1' },
+            { id: 'B', label: 'Node B', frontendId: 'node_2' },
+            { id: 'C', label: 'Node C', frontendId: 'node_3' },
+            { id: 'D', label: 'Node D', frontendId: 'node_4' },
+        ],
+        links: [
+          { id: '1', sourceNode: 'A', targetNode: 'B', label: 'Link A-B' },
+          { id: '2', sourceNode: 'B', targetNode: 'C', label: 'Link B-C' },
+          { id: '3', sourceNode: 'C', targetNode: 'D', label: 'Link C-D' },
+          { id: '4', sourceNode: 'D', targetNode: 'A', label: 'Link D-A' },
+        ]
+      };
   useEffect(() => {
-    if (graphData && graphData.nodes && graphData.links) {
-      console.log(graphData);
-
-      // Randomly assign initial positions for nodes, without using x and y
-      const nodesWithPosition = graphData.nodes.map(node => ({
-        ...node,
-        x: Math.random() * 800, // Random x position within the SVG width
-        y: Math.random() * 600  // Random y position within the SVG height
-      }));
-
-      // Create a mapping for node id -> node object to map links correctly
-      const nodeMap = new Map(nodesWithPosition.map(node => [node.id, node]));
-
-      // Transform the links to contain actual node objects as source and target
-      const transformedLinks = graphData.links.map(link => ({
-        ...link,
-        source: nodeMap.get(link.sourceNode), // Map sourceNode to actual node object
-        target: nodeMap.get(link.targetNode), // Map targetNode to actual node object
-      }));
-
-      setNodes(nodesWithPosition);  // Set nodes with random x/y positions
-      setLinks(transformedLinks);   // Set transformed links with actual node objects
+    if (graphData) {
+      createForceGraph(graphData);
     }
   }, [graphData]);
 
-  useEffect(() => {
-    if (!nodes || !links || nodes.length === 0 || links.length === 0) return; // Ensure nodes and links exist
-
-    // Set the dimensions of the graph
-    const width = 800;
+  const createForceGraph = (graphData) => {
+    const width = 928;
     const height = 600;
 
-    // Create the force simulation
-    const simulation = d3
-      .forceSimulation(nodes)
-      .force("link", d3.forceLink(links).id(d => d.id).distance(100))  // Links force
-      .force("charge", d3.forceManyBody().strength(-300))  // Repulsion force
-      .force("center", d3.forceCenter(width / 2, height / 2))  // Center force
-      .on("tick", ticked);  // Update positions on each tick
+    const color = d3.scaleOrdinal(d3.schemeCategory10);
 
-    // Create the SVG element
-    const svg = d3
-      .select(svgRef.current)
-      .attr("width", width)
-      .attr("height", height);
+    const { nodes, links } = graphData;
 
-    // Create links (lines between nodes)
-    const link = svg
-      .selectAll(".link")
-      .data(links)
-      .enter()
-      .append("line")
-      .attr("class", "link")
-      .attr("stroke", "#999")
-      .attr("stroke-opacity", 0.6)
-      .attr("stroke-width", 2);
+    // Log nodes and links for debugging
+    console.log('Nodes:', nodes);
+    console.log('Links:', links);
 
-    // Create nodes (circles)
-    const node = svg
-      .selectAll(".node")
+    const linksWithNodes = links.map(link => ({
+        ...link,
+        source: nodeMap.get(link.sourceNode),  // Lookup the node object for source
+        target: nodeMap.get(link.targetNode)   // Lookup the node object for target
+      }));
+
+      const simulation = d3.forceSimulation(nodes)
+      .force('link', d3.forceLink(linksWithNodes)
+        .id(d => d.id) // Ensure each node is referenced by its unique `id`
+        .links(linksWithNodes) // Set up the links between nodes
+      )
+      .force('charge', d3.forceManyBody())
+      .force('center', d3.forceCenter(width / 2, height / 2))
+      .on('tick', ticked); // Call ticked on each simulation step
+  
+
+    // Create the SVG container.
+    const svg = d3.select('#graph-container')
+      .append('svg')
+      .attr('width', width)
+      .attr('height', height)
+      .attr('viewBox', [0, 0, width, height])
+      .attr('style', 'max-width: 100%; height: auto;');
+
+    // Add lines for links.
+    const link = svg.append('g')
+      .attr('stroke', '#999')
+      .attr('stroke-opacity', 0.6)
+      .selectAll()
+      .data(linksWithNodes)
+      .join('line')
+      .attr('stroke-width', d => Math.sqrt(d.value));
+
+    link.append('title')
+      .text(d => d.label); // Display link's label
+
+    // Add circles for nodes.
+    const node = svg.append('g')
+      .attr('stroke', '#fff')
+      .attr('stroke-width', 1.5)
+      .selectAll()
       .data(nodes)
-      .enter()
-      .append("circle")
-      .attr("class", "node")
-      .attr("r", 10)
-      .attr("fill", "#1f77b4")
-      .call(d3.drag().on("start", dragstart).on("drag", dragged).on("end", dragend));
+      .join('circle')
+      .attr('r', 5)
+      .attr('fill', d => color(d.id));
 
-    // Add labels for nodes
-    svg
-      .selectAll(".label")
+    node.append('title')
+      .text(d => `${d.id}: ${d.label}`); // Display node's id and label
+
+    // Add labels to nodes
+    const nodeLabels = svg.append('g')
+      .selectAll('text')
       .data(nodes)
-      .enter()
-      .append("text")
-      .attr("class", "label")
-      .attr("x", d => d.x + 15) // Position label next to the node
-      .attr("y", d => d.y)
+      .join('text')
+      .attr('x', 10) // Initially set at a fixed distance
+      .attr('y', 10)
+      .attr('font-size', 12)
       .text(d => d.label);
 
-    // Function to update positions on each simulation tick
+    // Call drag functionality for nodes
+    node.call(d3.drag()
+      .on('start', dragstarted)
+      .on('drag', dragged)
+      .on('end', dragended));
+
+    // Update link and node positions on each tick
     function ticked() {
+      // Update link positions
       link
-        .attr("x1", d => d.source.x)
-        .attr("y1", d => d.source.y)
-        .attr("x2", d => d.target.x)
-        .attr("y2", d => d.target.y);
+        .attr('x1', d => d.source.x) // Access the node positions using `d.source.x` and `d.target.x`
+        .attr('y1', d => d.source.y)
+        .attr('x2', d => d.target.x)
+        .attr('y2', d => d.target.y);
 
+      // Update node positions
       node
-        .attr("cx", d => d.x)
-        .attr("cy", d => d.y);
+        .attr('cx', d => d.x)
+        .attr('cy', d => d.y);
 
-      svg
-        .selectAll(".label")
-        .attr("x", d => d.x + 15) // Keep labels next to their nodes
-        .attr("y", d => d.y);
+      // Update label positions to follow nodes
+      nodeLabels
+        .attr('x', d => d.x + 10) // Adjust the label position relative to the node
+        .attr('y', d => d.y);
     }
 
-    // Drag event handlers
-    function dragstart(event, d) {
+    // Drag functions
+    function dragstarted(event) {
       if (!event.active) simulation.alphaTarget(0.3).restart();
-      d.fx = d.x;
-      d.fy = d.y;
+      event.subject.fx = event.subject.x;
+      event.subject.fy = event.subject.y;
     }
 
-    function dragged(event, d) {
-      d.fx = event.x;
-      d.fy = event.y;
+    function dragged(event) {
+      event.subject.fx = event.x;
+      event.subject.fy = event.y;
     }
 
-    function dragend(event, d) {
+    function dragended(event) {
       if (!event.active) simulation.alphaTarget(0);
-      d.fx = null;
-      d.fy = null;
+      event.subject.fx = null;
+      event.subject.fy = null;
     }
 
-    // Cleanup function to remove the SVG and reset the simulation
-    return () => {
-      svg.selectAll("*").remove(); // Remove all elements when the component is unmounted
-      simulation.stop(); // Stop the simulation
-    };
-  }, [nodes, links]);
+    return svg.node();
+  };
 
-  return <svg ref={svgRef}></svg>;
+  return (
+    <div id="graph-container" />
+  );
 };
 
 export default InputDataNetworkGraph;

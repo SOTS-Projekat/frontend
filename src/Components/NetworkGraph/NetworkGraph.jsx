@@ -3,10 +3,16 @@ import * as d3 from "d3";
 import styles from "./NetworkGraph.module.scss";
 
 const NetworkGraph = ({ onSaveGraph, graphData }) => {
-
   const svgRef = useRef(null);
   const [nodes, setNodes] = useState([]);
   const [links, setLinks] = useState([]);
+
+  const simulation = useRef(
+    d3.forceSimulation()
+      .force("link", d3.forceLink().id(d => d.id).distance(100))
+      .force("charge", d3.forceManyBody().strength(-50))
+      .force("center", d3.forceCenter(250, 250))
+  ).current;
 
   const setGraphData = (newNodes, newLinks) => {
     setNodes(newNodes);
@@ -17,12 +23,38 @@ const NetworkGraph = ({ onSaveGraph, graphData }) => {
   useEffect(() => {
     if (graphData) {
       console.log("Graph data received:", graphData);
-      setNodes(graphData.nodes);
+      const updatedNodes = graphData.nodes.map((node, index) => ({
+        ...node,
+        x: Math.random() * 500, 
+        y: Math.random() * 500,
+      }));
+      setNodes(updatedNodes);
       setLinks(graphData.links);
+      simulateForceLayout(updatedNodes, graphData.links);
     }
   }, [graphData]);
 
+  const simulateForceLayout = (nodes, links) => {
+    
+    const updatedLinks = links.map(link => ({
+      source: nodes.find(node => node.id === link.sourceNode.id),
+      target: nodes.find(node => node.id === link.targetNode.id),
+    }));
+  
+    simulation
+      .nodes(nodes)
+      .on("tick", () => {
+        setNodes([...nodes]); // Trigger a re-render when positions change
+      });
 
+    simulation.force("link").links(updatedLinks);
+
+    simulation.alpha(1).restart();
+  };
+
+  
+  
+  
   const handleSvgClick = (event) => {
     if (event.button === 0) {
       const coords = d3.pointer(event);
@@ -65,7 +97,6 @@ const NetworkGraph = ({ onSaveGraph, graphData }) => {
       });
     }
   };
-
 
 const handleRightClick = (event, node) => {
   event.preventDefault();
@@ -176,41 +207,58 @@ const handleSaveGraph = () => {
     const node = svg.selectAll(".node").data(nodes, (d) => d.id);
   
     node
-      .enter()
-      .append("circle")
-      .attr("class", "node")
-      .attr("r", 20)
-      .attr("cx", (d) => d.x)
-      .attr("cy", (d) => d.y)
-      .attr("fill", "red")
+  .enter()
+  .append("circle")
+  .attr("class", "node")
+  .attr("r", 20)
+  .attr("cx", (d) => d.x)
+  .attr("cy", (d) => d.y)
+  .attr("fill", "red")
+  .attr("stroke", "black")
+  .attr("stroke-width", 2)
+  .style("cursor", "pointer")
+  .call(
+    d3.drag()
+      .on("start", (event, d) => {
+        if (!event.active) simulation.alphaTarget(0.3).restart();
+        d.fx = d.x;
+        d.fy = d.y;
+      })
+      .on("drag", (event, d) => {
+        d.fx = event.x;
+        d.fy = event.y;
+      })
+      .on("end", (event, d) => {
+        if (!event.active) simulation.alphaTarget(0);
+        d.fx = null;
+        d.fy = null;
+      })
+  )
+  .on("click", (event, d) => {
+    event.stopPropagation();
+    console.log(d);
+    const newName = prompt("Rename the node:", d.label);
+    if (newName) {
+      setNodes((prevNodes) =>
+        prevNodes.map((node) =>
+          node.id === d.id ? { ...node, label: newName } : node
+        )
+      );
+    }
+  })
+  .on("contextmenu", (event, d) => handleRightClick(event, d))
+  .on("mouseenter", function () {
+    d3.select(this)
+      .attr("stroke", "blue")
+      .attr("stroke-width", 2)
+      .style("filter", "drop-shadow(0px 0px 5px rgba(0, 0, 0, 0.3))");
+  })
+  .on("mouseleave", function () {
+    d3.select(this)
       .attr("stroke", "black")
       .attr("stroke-width", 2)
-      .style("cursor", "pointer")
-      .on("click", (event, d) => {
-        event.stopPropagation();
-        console.log(d);
-        const newName = prompt("Rename the node:", d.label);
-        if (newName) {
-          setNodes((prevNodes) =>
-            prevNodes.map((node) =>
-              node.id === d.id ? { ...node, label: newName } : node
-            )
-          );
-        }
-      })
-      .on("contextmenu", (event, d) => handleRightClick(event, d))
-      .on("mouseenter", function () {
-        d3.select(this)
-          .attr("stroke", "blue")
-          .attr("stroke-width", 2)
-          .style("filter", "drop-shadow(0px 0px 5px rgba(0, 0, 0, 0.3))");
-      })
-      .on("mouseleave", function () {
-        d3.select(this)
-          .attr("stroke", "black")
-          .attr("stroke-width", 2)
-          .style("filter", "none");
-      });
+      .style("filter", "none");
+  });
   
     node
       .exit()
