@@ -24,104 +24,224 @@ const NetworkGraph = ({ onSaveGraph, graphData }) => {
     if (graphData) {
       console.log("Graph data received:", graphData);
   
-      // Set initial positions for nodes randomly
-      const updatedNodes = graphData.nodes.map((node) => ({
+      const updatedNodes = (graphData.nodes || []).map((node) => ({
         ...node,
-        x: Math.random() * 500, 
+        x: Math.random() * 500,
         y: Math.random() * 500,
       }));
   
-      setNodes(updatedNodes);
-      setLinks(graphData.links); // Links should not have random x/y positions
+      const updatedLinks = (graphData.links || []).map((link) => ({
+        id: link.id,
+        label: link.label,
+        sourceNodeId: link.sourceNode?.id, // Check for optional chaining if sourceNode is undefined
+        targetNodeId: link.targetNode?.id,
+      }));
   
-      simulateForceLayout(updatedNodes, graphData.links);
+      setNodes(updatedNodes);
+      setLinks(updatedLinks);
+  
+      simulateForceLayout(updatedNodes, updatedLinks);
     }
   }, [graphData]);
-
-
+  
   const simulateForceLayout = (nodes, links) => {
-    const width = 500; 
-    const height = 500; 
+    const svg = d3.select(svgRef.current);
+    const width = 500;
+    const height = 500;
+  
     const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
-
+  
     simulation.nodes(nodes).on("tick", () => {
-      nodes.forEach(node => {
+    
+      nodes.forEach((node) => {
         node.x = clamp(node.x, 10, width - 10);
         node.y = clamp(node.y, 10, height - 10);
       });
-      
-      d3.selectAll(".link")
-        .attr("x1", d => d.sourceNode.x)
-        .attr("y1", d => d.sourceNode.y)
-        .attr("x2", d => d.targetNode.x)
-        .attr("y2", d => d.targetNode.y);
-
-      d3.selectAll(".node")
-        .attr("cx", d => d.x)
-        .attr("cy", d => d.y);
-
-      setNodes([...nodes]);
-      //setLinks([...links]);
+  
+      svg.selectAll(".link")
+        .data(links, (d) => `${d.sourceNodeId}-${d.targetNodeId}`)
+        .join(
+          (enter) =>
+            enter
+              .append("line")
+              .attr("class", "link")
+              .attr("stroke", "black")
+              .attr("stroke-width", 2)
+              .style("cursor", "pointer")
+              .on("click", (event, d) => {
+                event.stopPropagation();
+                const newLabel = prompt("Rename the link:", d.label);
+                if (newLabel) {
+                  setLinks((prevLinks) =>
+                    prevLinks.map((link) =>
+                      link.sourceNodeId === d.sourceNodeId &&
+                      link.targetNodeId === d.targetNodeId
+                        ? { ...link, label: newLabel }
+                        : link
+                    )
+                  );
+                }
+              })
+              .on("contextmenu", (event, d) => handleRightClickLink(event, d)),
+          (update) => update,
+          (exit) => exit.remove()
+        )
+        .attr("x1", (d) => {
+          const sourceNode = nodes.find((node) => node.id === d.sourceNodeId);
+          return sourceNode ? sourceNode.x : 0;
+        })
+        .attr("y1", (d) => {
+          const sourceNode = nodes.find((node) => node.id === d.sourceNodeId);
+          return sourceNode ? sourceNode.y : 0;
+        })
+        .attr("x2", (d) => {
+          const targetNode = nodes.find((node) => node.id === d.targetNodeId);
+          return targetNode ? targetNode.x : 0;
+        })
+        .attr("y2", (d) => {
+          const targetNode = nodes.find((node) => node.id === d.targetNodeId);
+          return targetNode ? targetNode.y : 0;
+        });
+  
+      svg.selectAll(".node")
+        .data(nodes, (d) => d.id)
+        .join(
+          (enter) =>
+            enter
+              .append("circle")
+              .attr("class", "node")
+              .attr("r", 20)
+              .attr("fill", "red")
+              .attr("stroke", "black")
+              .attr("stroke-width", 2)
+              .style("cursor", "pointer")
+              .on("contextmenu", (event, d) => handleRightClickNode(event, d))
+              .call(
+                d3.drag()
+                  .on("start", (event, d) => {
+                    if (!event.active) simulation.alphaTarget(0.3).restart();
+                    d.fx = d.x;
+                    d.fy = d.y;
+                  })
+                  .on("drag", (event, d) => {
+                    d.fx = event.x;
+                    d.fy = event.y;
+                  })
+                  .on("end", (event, d) => {
+                    if (!event.active) simulation.alphaTarget(0);
+                    d.fx = null;
+                    d.fy = null;
+                  })
+              ),
+          (update) => update,
+          (exit) => exit.remove()
+        )
+        .attr("cx", (d) => d.x)
+        .attr("cy", (d) => d.y);
+  
+      svg.selectAll(".node-label")
+        .data(nodes, (d) => d.id)
+        .join(
+          (enter) =>
+            enter
+              .append("text")
+              .attr("class", "node-label")
+              .attr("text-anchor", "middle")
+              .style("font-size", "12px")
+              .style("fill", "black"),
+          (update) => update,
+          (exit) => exit.remove()
+        )
+        .attr("x", (d) => d.x)
+        .attr("y", (d) => d.y + 35)
+        .text((d) => d.label);
+  
+      // Update link labels dynamically
+      svg.selectAll(".link-label")
+        .data(links, (d) => `${d.sourceNodeId}-${d.targetNodeId}`)
+        .join(
+          (enter) =>
+            enter
+              .append("text")
+              .attr("class", "link-label")
+              .attr("text-anchor", "middle")
+              .style("font-size", "12px")
+              .style("fill", "black"),
+          (update) => update,
+          (exit) => exit.remove()
+        )
+        .attr("x", (d) => {
+          const sourceNode = nodes.find((node) => node.id === d.sourceNodeId);
+          const targetNode = nodes.find((node) => node.id === d.targetNodeId);
+          return (sourceNode.x + targetNode.x) / 2;
+        })
+        .attr("y", (d) => {
+          const sourceNode = nodes.find((node) => node.id === d.sourceNodeId);
+          const targetNode = nodes.find((node) => node.id === d.targetNodeId);
+          return (sourceNode.y + targetNode.y) / 2 - 10;
+        })
+        .text((d) => d.label);
     });
-
-    // Update links in the simulation
+  
     simulation.force("link").links(
-      links.map(link => ({
-        source: nodes.find(node => node.id === link.sourceNode.id),
-        target: nodes.find(node => node.id === link.targetNode.id),
+      links.map((link) => ({
+        source: nodes.find((node) => node.id === link.sourceNodeId),
+        target: nodes.find((node) => node.id === link.targetNodeId),
       }))
     );
-
-    // Restart simulation
+  
     simulation.alpha(1).restart();
   };
+  
+  
+const handleSvgClick = (event) => {   
+  console.log("SVG clicked");
+  if (event.button === 0) { 
+    const coords = d3.pointer(event);
 
-  
-  
-  const handleSvgClick = (event) => {
-    if (event.button === 0) {
-      const coords = d3.pointer(event);
-      const clickedNode = nodes.find((node) => {
-        const distance = Math.sqrt(
-          Math.pow(coords[0] - node.x, 2) + Math.pow(coords[1] - node.y, 2)
+    const clickedNode = nodes.find((node) => {
+      const distance = Math.sqrt(
+        Math.pow(coords[0] - node.x, 2) + Math.pow(coords[1] - node.y, 2)
+      );
+      return distance < 30; // Radius of the node
+    });
+
+    if (clickedNode) {
+      const newName = prompt("Rename the node:", clickedNode.label);
+      if (newName) {
+        setNodes((prevNodes) =>
+          prevNodes.map((node) =>
+            node.id === clickedNode.id ? { ...node, label: newName } : node
+          )
         );
-        return distance < 30;
-      });
-
-      if (clickedNode) {
-        const newName = prompt("Rename the node:", clickedNode.label);
-        if (newName) {
-          setNodes((prevNodes) =>
-            prevNodes.map((node) =>
-              node.id === clickedNode.id ? { ...node, label: newName } : node
-            )
-          );
-        }
-      } else {
-        createNode(coords[0], coords[1]);
       }
+      return; 
     }
-  };
 
-  const createNode = (x, y) => {
-    const newNodeId = crypto.randomUUID();
-    const name = prompt("Name a new node:");
-    if (name) {
+    createNode(coords[0], coords[1]);
+  }
+};
+
+const createNode = (x, y) => {
+  const name = prompt("Name a new node:");
+  if (name) {
+    setNodes((prevNodes) => {
+      const maxId = prevNodes.length > 0 ? Math.max(...prevNodes.map((node) => node.id)) : 0;
+
       const newNode = {
-        id: newNodeId,
+        id: maxId + 1,
+        frontendId: crypto.randomUUID(),
         label: name,
-        x: x, // Set coordinates for the new node
+        x: x,
         y: y,
       };
-      setNodes((prevNodes) => {
-        const updatedNodes = [...prevNodes, newNode];
-        setGraphData(updatedNodes, links); // Odmah u metodi stavimo, umesto na kraju da zovemo uz useEffect
-        return updatedNodes;
-      });
-    }
-  };
 
-const handleRightClick = (event, node) => {
+      return [...prevNodes, newNode];
+    });
+  }
+};
+
+const handleRightClickNode = (event, node) => {
   event.preventDefault();
   event.stopPropagation();
 
@@ -129,275 +249,74 @@ const handleRightClick = (event, node) => {
   if (confirmDelete) {
     setNodes((prevNodes) => {
       const updatedNodes = prevNodes.filter((n) => n.id !== node.id);
+      setLinks((prevLinks) =>
+        prevLinks.filter(
+          (link) => link.sourceNodeId !== node.id && link.targetNodeId !== node.id
+        )
+      );
 
-      setLinks((prevLinks) => prevLinks.filter((link) => link.sourceNode.id !== node.id && link.targetNode.id !== node.id));
-      setGraphData(updatedNodes, links);
       return updatedNodes;
     });
   }
 };
 
-const handleSaveGraph = () => {
-  console.log("Graph Data:", graphData);
-  if (onSaveGraph) {
-    onSaveGraph(graphData);
+const handleRightClickLink = (event, link) => {
+  event.preventDefault();
+  event.stopPropagation();
+
+  const confirmDelete = window.confirm(`Are you sure you want to delete link: ${link.label}?`);
+  if (confirmDelete) {
+    setLinks((prevLinks) =>
+      prevLinks.filter(
+        (l) =>
+          l.sourceNodeId !== link.sourceNodeId || l.targetNodeId !== link.targetNodeId
+      )
+    );
   }
 };
 
-  
-    
-    // const link = svg.selectAll(".link").data(links, (d) => `${d.sourceNode}-${d.targetNode}`);
-  
-    // link
-    //   .enter()
-    //   .append("line")
-    //   .attr("class", "link")
-    //   .attr("x1", (d) => {
-    //     const sourceNode = nodes.find((node) => node.id === (d.sourceNode.id || d.sourceNode));
-    //     return sourceNode ? sourceNode.x : 0;
-    //   })
-    //   .attr("y1", (d) => {
-    //     const sourceNode = nodes.find((node) => node.id === (d.sourceNode.id || d.sourceNode));
-    //     return sourceNode ? sourceNode.y : 0;
-    //   })
-    //   .attr("x2", (d) => {
-    //     const targetNode = nodes.find((node) => node.id === (d.targetNode.id || d.targetNode));
-    //     return targetNode ? targetNode.x : 0;
-    //   })
-    //   .attr("y2", (d) => {
-    //     const targetNode = nodes.find((node) => node.id === (d.targetNode.id || d.targetNode));
-    //     return targetNode ? targetNode.y : 0;
-    //   })
-    //   .attr("stroke", "black")
-    //   .attr("stroke-width", 2)
-    //   .style("cursor", "pointer")
-    //   .on("click", (event, d) => {
-    //     console.log(d);
-    //     event.stopPropagation(); 
-    //     const newName = prompt("Rename the connection:", d.label);
-    //     if (newName) {
-    //       setLinks((prevLinks) =>
-    //         prevLinks.map((link) =>
-    //           link.sourceNode.id === d.sourceNode.id && link.targetNode.id === d.targetNode.id
-    //             ? { ...link, label: newName }
-    //             : link
-    //         )
-    //       );
-    //     }
-    //   })
-    //   .on("contextmenu", (event, d) => {
-    //     event.preventDefault();  
-    //     const confirmDelete = window.confirm(`Are you sure you want to delete this link?`);
-    //     if (confirmDelete) {
-    //       setLinks((prevLinks) =>
-    //         prevLinks.filter(
-    //           (link) => !(link.sourceNode.id === d.sourceNode.id && link.targetNode.id === d.targetNode.id)
-    //         )
-    //       );
-    //     }
-    //   });
-  
-    // link.exit().remove();
-
-    const updateGraph = () => {
-      const svg = d3.select(svgRef.current);
-
-      const node = svg.selectAll(".node").data(nodes, d => d.id);
-
-      node.enter()
-        .append("circle")
-        .attr("class", "node")
-        .attr("r", 20)
-        .attr("fill", "red")
-        .attr("stroke", "black")
-        .attr("stroke-width", 2)
-        .call(
-          d3.drag()
-        .on("start", (event, d) => {
-          d3.select(event.sourceEvent.target).raise();
-        })
-        .on("drag", (event, d) => {
-          d.x = event.x;
-          d.y = event.y;
-
-          
-          d3.select(event.sourceEvent.target)
-            .attr("cx", d.x)
-            .attr("cy", d.y);
-
-          svg.selectAll(".node-label")
-            .filter(label => label.id === d.id)
-            .attr("x", d.x)
-            .attr("y", d.y + 35);
-        })
-    );
-
-      node.exit().remove();
-    
-      const nodeLabel = svg.selectAll(".node-label").data(nodes, (d) => d.id);
-      nodeLabel
-        .enter()
-        .append("text")
-        .attr("class", "node-label")
-        .attr("x", (d) => d.x)
-        .attr("y", (d) => d.y + 35)
-        .attr("text-anchor", "middle")
-        .text((d) => d.label)
-        .style("font-size", "12px")
-        .style("fill", "black")
-        .merge(nodeLabel)
-      .attr("x", d => d.x)
-      .attr("y", d => d.y + 35);
-      
-      nodeLabel
-        .exit()
-        .remove(); 
-
-    const link = svg.selectAll(".link").data(links, d => `${d.sourceNode}-${d.targetNode}`);
-
-    link.enter()
-      .append("line")
-      .attr("class", "link")
-      .attr("stroke", "black")
-      .attr("stroke-width", 2)
-      .merge(link) // Merge enter and update selections
-      .attr("x1", (d) => {
-        const sourceNode = nodes.find((node) => node.id === d.sourceNode.id);
-        return sourceNode ? sourceNode.x : 0;
-      })
-      .attr("y1", (d) => {
-        const sourceNode = nodes.find((node) => node.id === d.sourceNode.id);
-        return sourceNode ? sourceNode.y : 0;
-      })
-      .attr("x2", (d) => {
-        const targetNode = nodes.find((node) => node.id === d.targetNode.id);
-        return targetNode ? targetNode.x : 0;
-      })
-      .attr("y2", (d) => {
-        const targetNode = nodes.find((node) => node.id === d.targetNode.id);
-        return targetNode ? targetNode.y : 0;
-      })
-      .on("click", (event, d) => {
-        console.log(d);
-        event.stopPropagation(); 
-        const newName = prompt("Rename the connection:", d.label);
-        if (newName) {
-          setLinks((prevLinks) =>
-            prevLinks.map((link) =>
-              link.sourceNode.id === d.sourceNode.id && link.targetNode.id === d.targetNode.id
-                ? { ...link, label: newName }
-                : link
-            )
-          );
-        }
-      })
-      .on("contextmenu", (event, d) => {
-        event.preventDefault();  
-        const confirmDelete = window.confirm(`Are you sure you want to delete this link?`);
-        if (confirmDelete) {
-          setLinks((prevLinks) =>
-            prevLinks.filter(
-              (link) => !(link.sourceNode.id === d.sourceNode.id && link.targetNode.id === d.targetNode.id)
-            )
-          );
-        }
-      });
-
-      link.exit().remove();
-        
-      const linkLabel = svg.selectAll(".link-label").data(links, (d) => `${d.sourceNode.id}-${d.targetNode.id}`);
-    
-      linkLabel
-        .enter()
-        .append("text")
-        .attr("class", "link-label")
-        .attr("x", (d) => {
-          const sourceNode = nodes.find((node) => node.id === d.sourceNode.id);
-          const targetNode = nodes.find((node) => node.id === d.targetNode.id);
-          return (sourceNode.x + targetNode.x) / 2;
-        })
-        .attr("y", (d) => {
-          const sourceNode = nodes.find((node) => node.id === d.sourceNode.id);
-          const targetNode = nodes.find((node) => node.id === d.targetNode.id);
-          return (sourceNode.y + targetNode.y) / 2 - 10; 
-        })
-        .attr("text-anchor", "middle")
-        .text((d) => d.name)
-        .style("font-size", "12px")
-        .style("fill", "black");
-    
-      linkLabel
-        .exit()
-        .remove(); 
-    
-    //   const node = svg.selectAll(".node").data(nodes, (d) => d.id);
-    
-    //   node
-    // .enter()
-    // .append("circle")
-    // .attr("class", "node")
-    // .attr("r", 20)
-    // .attr("cx", (d) => d.x)
-    // .attr("cy", (d) => d.y)
-    // .attr("fill", "red")
-    // .attr("stroke", "black")
-    // .attr("stroke-width", 2)
-    // .style("cursor", "pointer")
-    // .on("click", (event, d) => {
-    //   event.stopPropagation();
-    //   console.log(d);
-    //   const newName = prompt("Rename the node:", d.label);
-    //   if (newName) {
-    //     setNodes((prevNodes) =>
-    //       prevNodes.map((node) =>
-    //         node.id === d.id ? { ...node, label: newName } : node
-    //       )
-    //     );
-    //   }
-    // })
-    // .on("contextmenu", (event, d) => handleRightClick(event, d))
-    // .on("mouseenter", function () {
-    //   d3.select(this)
-    //     .attr("stroke", "blue")
-    //     .attr("stroke-width", 2)
-    //     .style("filter", "drop-shadow(0px 0px 5px rgba(0, 0, 0, 0.3))");
-    // })
-    // .on("mouseleave", function () {
-    //   d3.select(this)
-    //     .attr("stroke", "black")
-    //     .attr("stroke-width", 2)
-    //     .style("filter", "none");
-    // });
-    
-    //   node
-    //     .exit()
-    //     .remove();  
-    
-
-        //update nakon sto preimenujemo
-      nodeLabel  
-          .text((d) => d.label);
-      linkLabel
-          .text((d) => d.label);
+const addLink = (sourceNodeId, targetNodeId, label = "New Link") => {
+  setLinks((prevLinks) => {
+    const newLink = {
+      id: prevLinks.length > 0 ? Math.max(...prevLinks.map((link) => link.id)) + 1 : 1,
+      label: label,
+      sourceNodeId: sourceNodeId,
+      targetNodeId: targetNodeId,
     };
 
-  useEffect(() => {
-    updateGraph();
-  }, [nodes, links]);
+    return [...prevLinks, newLink];
+  });
+};
 
 
-  return (
-    <div className={styles.wrapper}>
-      <svg
-        ref={svgRef}
-        className={styles.svg}
-        onClick={handleSvgClick}
-        
-      ></svg>
-      <button onClick={handleSaveGraph} className={styles.saveButton}>
-        Save Graph
-      </button>
-    </div>
+const handleSaveGraph = () => {
+  const currentGraphData = { nodes, links }; // Combine current states
+  console.log("Graph Data:", currentGraphData);
+  if (onSaveGraph) {
+    onSaveGraph(currentGraphData); // Pass the updated graph data
+  }
+};
+
+
+useEffect(() => {
+  if (nodes.some(node => node.x === undefined || node.y === undefined) || links.length !== 0) {
+    simulateForceLayout(nodes, links);
+  }
+}, [nodes, links]);
+
+
+return (
+  <div className={styles.wrapper}>
+    <svg
+      ref={svgRef}
+      className={styles.svg}
+      onClick={handleSvgClick}
+      
+    ></svg>
+    <button onClick={handleSaveGraph} className={styles.saveButton}>
+      Save Graph
+    </button>
+  </div>
   );
 };
 

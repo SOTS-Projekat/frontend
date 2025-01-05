@@ -3,7 +3,6 @@ import styles from "./CreateKnowledgeDomain.module.scss";
 import { useNavigate, useParams } from "react-router";
 import KnowledgeDomainService from "../Services/KnowledgeDomainService";
 import NetworkGraph from "../NetworkGraph/NetworkGraph";
-import InputDataNetworkGraph from "../NetworkGraph/InputDataNetworkGraph";
 
 const EditKnowledgeDomain = () => {
   const { id } = useParams(); 
