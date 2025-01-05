@@ -20,10 +20,9 @@ const EditKnowledgeDomain = () => {
         setDomainName(response.name);
         setDescription(response.description);
         setSavedGraphData({
-          nodes: response.nodes,
-          links: response.links,
+          nodes: response.nodes || [],
+          links: response.links || [],
         });
-        
       } catch (error) {
         setError("Error fetching domain data.");
       }
