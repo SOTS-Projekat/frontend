@@ -6,7 +6,6 @@ const NetworkGraph = ({ onSaveGraph, graphData }) => {
   const svgRef = useRef(null);
   const [nodes, setNodes] = useState([]);
   const [links, setLinks] = useState([]);
-  const isInitialRender = useRef(true);
   const draggingSourceNode = useRef(null);
 
 
@@ -18,58 +17,56 @@ const NetworkGraph = ({ onSaveGraph, graphData }) => {
   ).current;
 
   useEffect(() => {
-    if (graphData) {
-      
-      if (isInitialRender.current) {  //  Samo prvi put u toku renderovanja uzmi podatke i ucitaj u graf, ovo je bitno posto svaki put kad pozovemo onSaveGraph, ovo se bilo aktiviralo, i onda se tehnicki 2 puta pozove inicijalizacija 
-        console.log("Graph data received:", graphData);
+    simulateForceLayout(nodes, links);
+  }, [nodes, links]);
 
-        const updatedNodes = (graphData.nodes || []).map((node) => ({
-          ...node,
-          x: Math.random() * 500,
-          y: Math.random() * 500,
-        }));
+  useEffect(() => {
+  if (graphData) {
+    console.log("Graph data received:", graphData);
+    const updatedNodes = (graphData.nodes || []).map((node) => ({
+      ...node,
+      name: node.label,
+      x: Math.random() * 500,
+      y: Math.random() * 500,
+    }));
+    const updatedLinks = (graphData.links || []).map((link) => ({
+      id: link.id,
+      name: link.label,
+      sourceNodeId: +link.sourceNode?.id,
+      targetNodeId: +link.targetNode?.id,
+    }));
 
-        const updatedLinks = (graphData.links || []).map((link) => ({
-          id: link.id,
-          label: link.label,
-          sourceNodeId: link.sourceNode?.id,
-          targetNodeId: link.targetNode?.id,
-        }));
+    setNodes(updatedNodes);
+    setLinks(updatedLinks);
 
-        setNodes(updatedNodes);
-        setLinks(updatedLinks);
-
-        simulateForceLayout(updatedNodes, updatedLinks);
-        isInitialRender.current = false; // Mark initial render complete
-      }
-    }
+    simulateForceLayout(updatedNodes, updatedLinks);
+  }
   }, [graphData]);
-  
+
   const simulateForceLayout = (nodes, links) => {
     const svg = d3.select(svgRef.current);
     const width = 500;
     const height = 500;
 
-    svg.select("defs").remove(); // Remove any existing defs to avoid duplicates
+    svg.select("defs").remove(); 
     const defs = svg.append("defs");
 
     defs
-      .append("marker")
+      .append("marker") //  Strelica na target
       .attr("id", "arrowhead")
       .attr("viewBox", "0 -5 10 10")
-      .attr("refX", 10) // Position the arrow at the end of the line
+      .attr("refX", 10) 
       .attr("refY", 0)
       .attr("markerWidth", 6)
       .attr("markerHeight", 6)
       .attr("orient", "auto")
       .append("path")
-      .attr("d", "M0,-5L10,0L0,5") // Arrow shape
+      .attr("d", "M0,-5L10,0L0,5") 
       .attr("fill", "black");
   
     const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
   
     simulation.nodes(nodes).on("tick", () => {
-    
       nodes.forEach((node) => {
         node.x = clamp(node.x, 10, width - 10);
         node.y = clamp(node.y, 10, height - 10);
@@ -87,21 +84,22 @@ const NetworkGraph = ({ onSaveGraph, graphData }) => {
             .attr("marker-end", "url(#arrowhead)")
             .style("cursor", "pointer")
             .on("click", (event, d) => {
+              console.log(d);
               event.stopPropagation();
-              const newLabel = prompt("Rename the link:", d.label);
+              const newLabel = prompt("Rename the link:", d.name);
               if (newLabel) {
                 setLinks((prevLinks) =>
                   prevLinks.map((link) =>
                     link.sourceNodeId === d.sourceNodeId &&
                     link.targetNodeId === d.targetNodeId
-                      ? { ...link, label: newLabel }
+                      ? { ...link, name: newLabel }
                       : link
                   )
                 );
               }
             })
             .on("contextmenu", (event, d) => handleRightClickLink(event, d)),
-        (update) => update,
+        (update) => update.attr("marker-end", "url(#arrowhead)"),
         (exit) => exit.remove()
       )
       .attr("x1", (d) => {
@@ -137,7 +135,7 @@ const NetworkGraph = ({ onSaveGraph, graphData }) => {
               if (event.button === 1) { // Check for middle mouse button
                 handleNodeMiddleClick(event, d);
               }
-            }) // Attach mousedown event directly here
+            }) 
             .on("contextmenu", (event, d) => handleRightClickNode(event, d))
             .call(
               d3.drag()
@@ -163,7 +161,6 @@ const NetworkGraph = ({ onSaveGraph, graphData }) => {
       .attr("cy", (d) => d.y);
     
 
-  
       svg.selectAll(".node-label")
         .data(nodes, (d) => d.id)
         .join(
@@ -179,9 +176,8 @@ const NetworkGraph = ({ onSaveGraph, graphData }) => {
         )
         .attr("x", (d) => d.x)
         .attr("y", (d) => d.y + 35)
-        .text((d) => d.label);
+        .text((d) => d.name);
   
-      // Update link labels dynamically
       svg.selectAll(".link-label")
         .data(links, (d) => `${d.sourceNodeId}-${d.targetNodeId}`)
         .join(
@@ -205,7 +201,7 @@ const NetworkGraph = ({ onSaveGraph, graphData }) => {
           const targetNode = nodes.find((node) => node.id === d.targetNodeId);
           return (sourceNode.y + targetNode.y) / 2 - 10;
         })
-        .text((d) => d.label);
+        .text((d) => d.name);
     });
   
     simulation.force("link").links(
@@ -227,15 +223,16 @@ const handleSvgClick = (event) => {
       const distance = Math.sqrt(
         Math.pow(coords[0] - node.x, 2) + Math.pow(coords[1] - node.y, 2)
       );
-      return distance < 30; // Radius of the node
+      return distance < 30; 
     });
 
     if (clickedNode) {
-      const newName = prompt("Rename the node:", clickedNode.label);
+      console.log(clickedNode);
+      const newName = prompt("Rename the node:", clickedNode.name);
       if (newName) {
         setNodes((prevNodes) =>
           prevNodes.map((node) =>
-            node.id === clickedNode.id ? { ...node, label: newName } : node
+            node.id === clickedNode.id ? { ...node, name: newName } : node
           )
         );
       }
@@ -250,12 +247,10 @@ const createNode = (x, y) => {
   const name = prompt("Name a new node:");
   if (name) {
     setNodes((prevNodes) => {
-      const maxId = prevNodes.length > 0 ? Math.max(...prevNodes.map((node) => node.id)) : 0;
-
+      
       const newNode = {
-        id: maxId + 1,
-        frontendId: crypto.randomUUID(),
-        label: name,
+        id: crypto.randomUUID(),
+        name: name,
         x: x,
         y: y,
       };
@@ -269,7 +264,7 @@ const handleRightClickNode = (event, node) => {
   event.preventDefault();
   event.stopPropagation();
 
-  const confirmDelete = window.confirm(`Are you sure you want to delete node: ${node.label}?`);
+  const confirmDelete = window.confirm(`Are you sure you want to delete node: ${node.name}?`);
   if (confirmDelete) {
     setNodes((prevNodes) => {
       const updatedNodes = prevNodes.filter((n) => n.id !== node.id);
@@ -288,7 +283,7 @@ const handleRightClickLink = (event, link) => {
   event.preventDefault();
   event.stopPropagation();
 
-  const confirmDelete = window.confirm(`Are you sure you want to delete link: ${link.label}?`);
+  const confirmDelete = window.confirm(`Are you sure you want to delete link: ${link.name}?`);
   if (confirmDelete) {
     setLinks((prevLinks) =>
       prevLinks.filter(
@@ -322,54 +317,60 @@ const handleNodeMiddleClick = (event, sourceNode) => {
 
     svg.on("mouseup", (event) => {
       const [x, y] = d3.pointer(event);
+      console.log("SOURCE Node:", draggingSourceNode.current);
+    
       const targetNode = nodes.find(
-        (node) => Math.hypot(node.x - x, node.y - y) < 20 // Check if within radius
+        (node) => Math.hypot(node.x - x, node.y - y) < 20
       );
-
-      if (targetNode && targetNode.id !== sourceNode.id) {
+    
+      console.log("TARGET Node:", targetNode);
+    
+      if (targetNode && targetNode.id !== draggingSourceNode.current.id) {
         const label = prompt("Enter link label:");
         if (label) {
-          addLink(sourceNode.id, targetNode.id, label);
+          addLink(draggingSourceNode.current.id, targetNode.id, label);
         }
       }
-
-      // Cleanup
+    
       tempLine.remove();
       svg.on("mousemove", null).on("mouseup", null);
       draggingSourceNode.current = null;
     });
   }
-};
+}
 
-const addLink = (sourceNodeId, targetNodeId, label = "New Link") => {
-    setLinks((prevLinks) => {
-      const newLink = {
-        id: prevLinks.length > 0 ? Math.max(...prevLinks.map((link) => link.id)) + 1 : 1,
-        label: label,
-        sourceNodeId: sourceNodeId,
-        targetNodeId: targetNodeId,
+  const addLink = (sourceNodeId, targetNodeId, name = "New Link") => {
+      setLinks((prevLinks) => {
+        const newLink = {
+          name,
+          sourceNodeId,
+          targetNodeId
+        };
+
+        return [...prevLinks, newLink];
+      });
+    };
+
+
+    const handleSaveGraph = () => {
+      const transformedLinks = links.map((link) => ({ //  Menjamo format u odgovarajuci za bek
+        name: link.name,
+        source: { id: link.sourceNodeId },
+        target: { id: link.targetNodeId },
+      }));
+    
+      const currentGraphData = {
+        nodes: nodes,
+        links: transformedLinks,
       };
-
-      return [...prevLinks, newLink];
-    });
-  };
-
-
-const handleSaveGraph = () => {
-  const currentGraphData = { nodes, links }; // Combine current states
-  console.log("Graph Data:", currentGraphData);
-  if (onSaveGraph) {
-    onSaveGraph(currentGraphData); // Pass the updated graph data
-  }
-};
-
-
-useEffect(() => {
-  if (nodes.some(node => node.x === undefined || node.y === undefined) || links.length !== 0) {
-    simulateForceLayout(nodes, links);
-  }
-}, [nodes, links]);
-
+    
+      console.log("Graph Data to Save:", currentGraphData);
+    
+      if (onSaveGraph) {
+        onSaveGraph(currentGraphData);
+      }
+    };
+    
 
 return (
   <div className={styles.wrapper}>

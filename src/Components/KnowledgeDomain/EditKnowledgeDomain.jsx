@@ -12,11 +12,11 @@ const EditKnowledgeDomain = () => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  useEffect(() => {
+  useEffect(() => { //  Ovo se poziva 2 puta, pogledati posle da li je mozda greska
     const fetchDomainData = async () => {
       try {
         const response = await KnowledgeDomainService.getOneById(id);
-        console.log("Fetched domain data:", response);
+        //console.log("Fetched domain data:", response);
         setDomainName(response.name);
         setDescription(response.description);
         setSavedGraphData({
