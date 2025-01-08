@@ -4,7 +4,6 @@ import { RouterProvider, createHashRouter, Navigate } from "react-router-dom";
 import Layout from "./layout/Layout";
 import RegisterForm from "./Components/RegisterForm/RegisterForm";
 import ProtectedRoute from "./Components/Navigation/ProtectedRoute";
-import HomePage from "./Components/HomePage/HomePage";
 import CreateTestPage from "./Components/CreateTestPage/CreateTestPage";
 import TestSolverPage from "./Components/TestSolverPage/TestSolverPage";
 import StudentTestPage from "./Components/TestViewPage/StudentTestPage";
@@ -12,6 +11,8 @@ import KnowledgeDomainPage from "./Components/KnowledgeDomain/KnowledgeDomainPag
 import CreateKnowledgeDomain from "./Components/KnowledgeDomain/CreateKnowledgeDomain";
 import "react-toastify/dist/ReactToastify.css"; // Uvozi stilove za Toastify
 import EditKnowledgeDomain from "./Components/KnowledgeDomain/EditKnowledgeDomain";
+import RealKnowledgeDomainPage from "./Components/KnowledgeDomain/RealKnowledgeDomainPage";
+import EditRealKnowledgeDomain from "./Components/KnowledgeDomain/EditRealKnowledgeDomain";
 
 function App() {
   const isAuthenticated = !!localStorage.getItem("token");
@@ -34,7 +35,7 @@ function App() {
           path: "home",
           element: (
             <ProtectedRoute>
-              <HomePage />
+              <RealKnowledgeDomainPage />
             </ProtectedRoute>
           ),
         },
@@ -83,6 +84,14 @@ function App() {
           element: (
             <ProtectedRoute>
               <EditKnowledgeDomain/>
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: "real-knowledge-domain/:id",
+          element: (
+            <ProtectedRoute>
+              <EditRealKnowledgeDomain/>
             </ProtectedRoute>
           ),
         },

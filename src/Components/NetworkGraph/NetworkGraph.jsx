@@ -8,7 +8,6 @@ const NetworkGraph = ({ onSaveGraph, graphData }) => {
   const [links, setLinks] = useState([]);
   const draggingSourceNode = useRef(null);
 
-
   const simulation = useRef(
     d3.forceSimulation()
       .force("link", d3.forceLink().id(d => d.id).distance(100))
@@ -22,7 +21,6 @@ const NetworkGraph = ({ onSaveGraph, graphData }) => {
 
   useEffect(() => {
   if (graphData) {
-    console.log("Graph data received:", graphData);
     const updatedNodes = (graphData.nodes || []).map((node) => ({
       ...node,
       name: node.label,
@@ -353,15 +351,15 @@ const handleNodeMiddleClick = (event, sourceNode) => {
 
 
     const handleSaveGraph = () => {
-      const transformedLinks = links.map((link) => ({ //  Menjamo format u odgovarajuci za bek
+      const transformedLinks = (links || []).map((link) => ({
         name: link.name,
         source: { id: link.sourceNodeId },
         target: { id: link.targetNodeId },
       }));
     
       const currentGraphData = {
-        nodes: nodes,
-        links: transformedLinks,
+        nodes: nodes || [], 
+        links: transformedLinks || [], 
       };
     
       console.log("Graph Data to Save:", currentGraphData);
@@ -370,6 +368,7 @@ const handleNodeMiddleClick = (event, sourceNode) => {
         onSaveGraph(currentGraphData);
       }
     };
+    
     
 
 return (

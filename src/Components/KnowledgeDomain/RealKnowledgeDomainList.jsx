@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import styles from "./KnowledgeDomainList.module.scss";
 import { useNavigate } from "react-router";
 
-const KnowledgeDomainList = ({ knowledgeDomains, onSelect }) => {
+const RealKnowledgeDomainList = ({ knowledgeDomains, onSelect }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
 
@@ -10,12 +10,8 @@ const KnowledgeDomainList = ({ knowledgeDomains, onSelect }) => {
     setSearchTerm(event.target.value.toLowerCase());
   };
 
-  const handleCreate = (event) => {
-    navigate("create");
-  };
-
   const handleSelectDomain = (domainId) => {
-    navigate(`/knowledge-domain/${domainId}`);
+    navigate(`/real-knowledge-domain/${domainId}`);
   };
 
   const filteredDomains = knowledgeDomains.filter((domain) =>
@@ -32,9 +28,7 @@ const KnowledgeDomainList = ({ knowledgeDomains, onSelect }) => {
           value={searchTerm}
           onChange={handleSearchChange}
         />
-        <button className={styles.createButton} onClick={handleCreate}>
-          Create New Domain
-        </button>
+       
       </div>
       {filteredDomains.length === 0 ? (
         <div className={styles.emptyMessage}>No knowledge domains found.</div>
@@ -67,4 +61,4 @@ const KnowledgeDomainList = ({ knowledgeDomains, onSelect }) => {
   );
 };
 
-export default KnowledgeDomainList;
+export default RealKnowledgeDomainList;

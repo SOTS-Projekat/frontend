@@ -18,7 +18,6 @@ const KnowledgeDomainService = {
 
       console.log("/////////");
       console.log(response);
-      // Proverite da li je odgovor uspešan
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -29,6 +28,33 @@ const KnowledgeDomainService = {
     } catch (error) {
       console.log(error);
       throw new Error(error.message || "Failed to create test");
+    }
+  },
+
+  updateKnowledgeDomain: async (id, domain) => {
+    const session = useSession();
+    try {
+      const response = await fetch(`${API_URL}/update/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session}`,
+        },
+        body: JSON.stringify(domain),
+      });
+
+      console.log("/////////");
+      console.log(response);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log(data);
+      return data;
+    } catch (error) {
+      console.log(error);
+      throw new Error(error.message || "Failed to update knowledge domain");
     }
   },
 
@@ -77,9 +103,31 @@ const KnowledgeDomainService = {
     }
   },
 
+  getRealKnowledgeDomainById: async (id) => {
+    const session = useSession();
+    try {
+      const response = await fetch(`${API_URL}/getRealKnowledgeDomain/${id}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const domain = await response.json();
+      return domain; // Return the domain object
+    } catch (error) {
+      throw new Error(error.message || "Failed to get the real knowledge domain by id.");
+    }
+  },
+
+
 
 };
-
 
 
 export default KnowledgeDomainService;
