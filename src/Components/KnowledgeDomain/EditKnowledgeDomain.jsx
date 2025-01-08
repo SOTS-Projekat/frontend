@@ -16,7 +16,6 @@ const EditKnowledgeDomain = () => {
     const fetchDomainData = async () => {
       try {
         const response = await KnowledgeDomainService.getOneById(id);
-        //console.log("Fetched domain data:", response);
         setDomainName(response.name);
         setDescription(response.description);
         setSavedGraphData({
