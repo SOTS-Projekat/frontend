@@ -4,7 +4,7 @@ import { useNavigate, useParams } from "react-router";
 import KnowledgeDomainService from "../Services/KnowledgeDomainService";
 import NetworkGraph from "../NetworkGraph/NetworkGraph";
 
-const EditKnowledgeDomain = () => {
+const EditRealKnowledgeDomain = () => {
   const { id } = useParams(); 
   const [domainName, setDomainName] = useState("");
   const [description, setDescription] = useState("");
@@ -12,11 +12,11 @@ const EditKnowledgeDomain = () => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  useEffect(() => { //  Ovo se poziva 2 puta, pogledati posle da li je mozda greska
+  useEffect(() => { 
     const fetchDomainData = async () => {
       try {
-        const response = await KnowledgeDomainService.getOneById(id);
-        //console.log("Fetched domain data:", response);
+        const response = await KnowledgeDomainService.getRealKnowledgeDomainById(id);
+        console.log("Fetched domain data:", response);
         setDomainName(response.name);
         setDescription(response.description);
         setSavedGraphData({
@@ -53,7 +53,7 @@ const EditKnowledgeDomain = () => {
 
     try {
       await KnowledgeDomainService.updateKnowledgeDomain(id, updatedDomain);
-      navigate("/knowledge-domain"); // Redirect after save
+      navigate("/knowledge-domain"); 
     } catch (error) {
       setError("Error saving domain data.");
     }
@@ -96,10 +96,10 @@ const EditKnowledgeDomain = () => {
       <NetworkGraph onSaveGraph={handleGraphSave} graphData={savedGraphData} />
 
       <button onClick={handleSave} className={styles.saveButton}>
-        Save Knowledge Domain
+        Save Real Knowledge Domain
       </button>
     </div>
   );
 };
 
-export default EditKnowledgeDomain;
+export default EditRealKnowledgeDomain;
