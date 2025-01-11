@@ -45,7 +45,7 @@ const NetworkGraph = ({ onSaveGraph, graphData }) => {
     const svg = d3.select(svgRef.current);
     const width = 500;
     const height = 500;
-
+///
     svg.select("defs").remove(); 
     const defs = svg.append("defs");
 
