@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect } from "react";
 import * as d3 from "d3";
 import styles from "./NetworkGraph.module.scss";
 
-const NetworkGraph = ({ onSaveGraph, graphData }) => {
+const NetworkGraph = ({ onSaveGraph, graphData, showSaveButton, predictedGraphData }) => {
   const svgRef = useRef(null);
   const [nodes, setNodes] = useState([]);
   const [links, setLinks] = useState([]);
@@ -10,10 +10,11 @@ const NetworkGraph = ({ onSaveGraph, graphData }) => {
 
   const simulation = useRef(
     d3.forceSimulation()
-      .force("link", d3.forceLink().id(d => d.id).distance(100))
-      .force("charge", d3.forceManyBody().strength(-300))
-      .force("center", d3.forceCenter(250, 250))
+      .force("link", d3.forceLink().id((d) => d.id).distance(180)) // Spread links further apart
+      .force("charge", d3.forceManyBody().strength(-500)) // Increase repulsion for better spacing
+      .force("center", d3.forceCenter(500, 250)) // Center the simulation in the middle of the SVG
   ).current;
+  
 
   useEffect(() => {
     simulateForceLayout(nodes, links);
@@ -23,13 +24,11 @@ const NetworkGraph = ({ onSaveGraph, graphData }) => {
   if (graphData) {
     const updatedNodes = (graphData.nodes || []).map((node) => ({
       ...node,
-      name: node.label,
       x: Math.random() * 500,
       y: Math.random() * 500,
     }));
     const updatedLinks = (graphData.links || []).map((link) => ({
-      id: link.id,
-      name: link.label,
+      ...link,
       sourceNodeId: +link.sourceNode?.id,
       targetNodeId: +link.targetNode?.id,
     }));
@@ -43,24 +42,28 @@ const NetworkGraph = ({ onSaveGraph, graphData }) => {
 
   const simulateForceLayout = (nodes, links) => {
     const svg = d3.select(svgRef.current);
-    const width = 500;
+    const width = 1000;
     const height = 500;
-///
+
     svg.select("defs").remove(); 
+
     const defs = svg.append("defs");
 
     defs
-      .append("marker") //  Strelica na target
-      .attr("id", "arrowhead")
-      .attr("viewBox", "0 -5 10 10")
-      .attr("refX", 10) 
-      .attr("refY", 0)
-      .attr("markerWidth", 6)
-      .attr("markerHeight", 6)
-      .attr("orient", "auto")
-      .append("path")
-      .attr("d", "M0,-5L10,0L0,5") 
-      .attr("fill", "black");
+  .append("marker") 
+  .attr("id", "arrowhead")
+  .attr("viewBox", "0 -5 10 10") 
+  .attr("refX", 15) 
+  .attr("refY", 0)
+  .attr("markerWidth", 12) 
+  .attr("markerHeight", 12) 
+  .attr("orient", "auto") 
+  .append("path")
+  .attr("d", "M0,-5L10,0L0,5") 
+  .attr("fill", "black") 
+  .attr("stroke", "black") 
+  .attr("stroke-width", 1.5); 
+
   
     const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
   
@@ -71,35 +74,44 @@ const NetworkGraph = ({ onSaveGraph, graphData }) => {
       });
   
       svg.selectAll(".link")
-      .data(links, (d) => `${d.sourceNodeId}-${d.targetNodeId}`)
+      .data(links, (d) => `${d.sourceNode.Id}-${d.targetNode.Id}`)
       .join(
         (enter) =>
           enter
             .append("line")
             .attr("class", "link")
-            .attr("stroke", "black")
+            .attr("stroke", (d) =>
+              predictedGraphData && isLinkDifferent(d, predictedGraphData.links) ? "blue" : "black"
+            )
             .attr("stroke-width", 2)
             .attr("marker-end", "url(#arrowhead)")
             .style("cursor", "pointer")
             .on("click", (event, d) => {
               console.log(d);
               event.stopPropagation();
-              const newLabel = prompt("Rename the link:", d.name);
+              const newLabel = prompt("Rename the link:", d.label);
               if (newLabel) {
                 setLinks((prevLinks) =>
                   prevLinks.map((link) =>
                     link.sourceNodeId === d.sourceNodeId &&
                     link.targetNodeId === d.targetNodeId
-                      ? { ...link, name: newLabel }
+                      ? { ...link, label: newLabel }
                       : link
                   )
                 );
               }
             })
             .on("contextmenu", (event, d) => handleRightClickLink(event, d)),
-        (update) => update.attr("marker-end", "url(#arrowhead)"),
+        (update) => 
+          update
+            .attr("stroke", (d) =>
+              predictedGraphData && isLinkDifferent(d, predictedGraphData.links) ? "blue" : "black"
+            )
+            .attr("marker-end", "url(#arrowhead)")
+        ,
         (exit) => exit.remove()
       )
+    
       .attr("x1", (d) => {
         const sourceNode = nodes.find((node) => node.id === d.sourceNodeId);
         return sourceNode ? sourceNode.x : 0;
@@ -117,6 +129,8 @@ const NetworkGraph = ({ onSaveGraph, graphData }) => {
         return targetNode ? targetNode.y : 0;
       });
 
+      const predictedNodes = predictedGraphData?.nodes || [];
+
       svg.selectAll(".node")
       .data(nodes, (d) => d.id)
       .join(
@@ -125,7 +139,12 @@ const NetworkGraph = ({ onSaveGraph, graphData }) => {
             .append("circle")
             .attr("class", "node")
             .attr("r", 20)
-            .attr("fill", "red")
+            .attr("fill", (d) => {
+              if (predictedGraphData && isNodeDifferent(d, predictedNodes)) {
+                return "blue"; 
+              }
+              return "red"; 
+            })
             .attr("stroke", "black")
             .attr("stroke-width", 2)
             .style("cursor", "pointer")
@@ -152,7 +171,17 @@ const NetworkGraph = ({ onSaveGraph, graphData }) => {
                   d.fy = null;
                 })
             ),
-        (update) => update,
+        (update) => 
+          
+        update
+        .attr("fill", (d) => {
+          // Update the fill dynamically if the node changes
+          if (predictedGraphData && isNodeDifferent(d, predictedNodes)) {
+            return "blue";
+          }
+          return "red";
+        }),
+
         (exit) => exit.remove()
       )
       .attr("cx", (d) => d.x)
@@ -174,7 +203,7 @@ const NetworkGraph = ({ onSaveGraph, graphData }) => {
         )
         .attr("x", (d) => d.x)
         .attr("y", (d) => d.y + 35)
-        .text((d) => d.name);
+        .text((d) => d.label);
   
       svg.selectAll(".link-label")
         .data(links, (d) => `${d.sourceNodeId}-${d.targetNodeId}`)
@@ -199,7 +228,7 @@ const NetworkGraph = ({ onSaveGraph, graphData }) => {
           const targetNode = nodes.find((node) => node.id === d.targetNodeId);
           return (sourceNode.y + targetNode.y) / 2 - 10;
         })
-        .text((d) => d.name);
+        .text((d) => d.label);
     });
   
     simulation.force("link").links(
@@ -226,11 +255,11 @@ const handleSvgClick = (event) => {
 
     if (clickedNode) {
       console.log(clickedNode);
-      const newName = prompt("Rename the node:", clickedNode.name);
+      const newName = prompt("Rename the node:", clickedNode.label);
       if (newName) {
         setNodes((prevNodes) =>
           prevNodes.map((node) =>
-            node.id === clickedNode.id ? { ...node, name: newName } : node
+            node.id === clickedNode.id ? { ...node, label: newName } : node
           )
         );
       }
@@ -248,7 +277,7 @@ const createNode = (x, y) => {
       
       const newNode = {
         id: crypto.randomUUID(),
-        name: name,
+        label: name,
         x: x,
         y: y,
       };
@@ -262,7 +291,7 @@ const handleRightClickNode = (event, node) => {
   event.preventDefault();
   event.stopPropagation();
 
-  const confirmDelete = window.confirm(`Are you sure you want to delete node: ${node.name}?`);
+  const confirmDelete = window.confirm(`Are you sure you want to delete node: ${node.label}?`);
   if (confirmDelete) {
     setNodes((prevNodes) => {
       const updatedNodes = prevNodes.filter((n) => n.id !== node.id);
@@ -281,7 +310,7 @@ const handleRightClickLink = (event, link) => {
   event.preventDefault();
   event.stopPropagation();
 
-  const confirmDelete = window.confirm(`Are you sure you want to delete link: ${link.name}?`);
+  const confirmDelete = window.confirm(`Are you sure you want to delete link: ${link.label}?`);
   if (confirmDelete) {
     setLinks((prevLinks) =>
       prevLinks.filter(
@@ -337,10 +366,10 @@ const handleNodeMiddleClick = (event, sourceNode) => {
   }
 }
 
-  const addLink = (sourceNodeId, targetNodeId, name = "New Link") => {
+  const addLink = (sourceNodeId, targetNodeId, label = "New Link") => {
       setLinks((prevLinks) => {
         const newLink = {
-          name,
+          label,
           sourceNodeId,
           targetNodeId
         };
@@ -349,10 +378,22 @@ const handleNodeMiddleClick = (event, sourceNode) => {
       });
     };
 
+    const isNodeDifferent = (node, predictedNodes) => {
+      return !predictedNodes.some((predNode) => predNode.label === node.label);
+    };
+
+    const isLinkDifferent = (link, predictedLinks) => {
+      return !predictedLinks.some(
+        (predictedLink) =>
+          predictedLink.sourceNodeId === link.sourceNodeId &&
+          predictedLink.targetNodeId === link.targetNodeId
+      );
+    };
+    
 
     const handleSaveGraph = () => {
       const transformedLinks = (links || []).map((link) => ({
-        name: link.name,
+        label: link.label,
         source: { id: link.sourceNodeId },
         target: { id: link.targetNodeId },
       }));
@@ -361,7 +402,6 @@ const handleNodeMiddleClick = (event, sourceNode) => {
         nodes: nodes || [], 
         links: transformedLinks || [], 
       };
-    
       console.log("Graph Data to Save:", currentGraphData);
     
       if (onSaveGraph) {
@@ -369,20 +409,20 @@ const handleNodeMiddleClick = (event, sourceNode) => {
       }
     };
     
-    
 
-return (
-  <div className={styles.wrapper}>
-    <svg
-      ref={svgRef}
-      className={styles.svg}
-      onClick={handleSvgClick}
-      
-    ></svg>
-    <button onClick={handleSaveGraph} className={styles.saveButton}>
-      Save Graph
-    </button>
-  </div>
+  return (
+    <div className={styles.wrapper}>
+      <svg
+        ref={svgRef}
+        className={styles.svg}
+        onClick={handleSvgClick}
+      ></svg>
+      {showSaveButton && (
+        <button onClick={handleSaveGraph} className={styles.saveButton}>
+          Save Graph
+        </button>
+      )}
+    </div>
   );
 };
 

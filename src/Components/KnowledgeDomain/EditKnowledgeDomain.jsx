@@ -8,7 +8,9 @@ const EditKnowledgeDomain = () => {
   const { id } = useParams(); 
   const [domainName, setDomainName] = useState("");
   const [description, setDescription] = useState("");
-  const [savedGraphData, setSavedGraphData] = useState(null);
+  //const [savedGraphData, setSavedGraphData] = useState(null);
+  const [graphDataOne, setGraphDataOne] = useState(null);
+  const [graphDataTwo, setGraphDataTwo] = useState(null);
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
@@ -16,11 +18,19 @@ const EditKnowledgeDomain = () => {
     const fetchDomainData = async () => {
       try {
         const response = await KnowledgeDomainService.getOneById(id);
+        console.log(response);
         setDomainName(response.name);
         setDescription(response.description);
-        setSavedGraphData({
+        setGraphDataOne({
           nodes: response.nodes || [],
           links: response.links || [],
+        });
+
+        const secondGraphResponse = await KnowledgeDomainService.getRealKnowledgeDomainById(id);
+        console.log(secondGraphResponse);
+        setGraphDataTwo({
+          nodes: secondGraphResponse.nodes || [],
+          links: secondGraphResponse.links || [],
         });
       } catch (error) {
         setError("Error fetching domain data.");
@@ -36,7 +46,7 @@ const EditKnowledgeDomain = () => {
       return;
     }
 
-    if (!savedGraphData || savedGraphData.nodes.length === 0) {
+    if (!graphDataOne || graphDataOne.nodes.length === 0) {
       setError("Please save a graph before submitting.");
       return;
     }
@@ -46,20 +56,20 @@ const EditKnowledgeDomain = () => {
     const updatedDomain = {
       name: domainName,
       description: description,
-      nodes: savedGraphData.nodes,
-      links: savedGraphData.links,
+      nodes: graphDataOne.nodes,
+      links: graphDataOne.links,
     };
 
     try {
       await KnowledgeDomainService.updateKnowledgeDomain(id, updatedDomain);
-      navigate("/knowledge-domain"); // Redirect after save
+      navigate("/knowledge-domain"); 
     } catch (error) {
       setError("Error saving domain data.");
     }
   };
 
-  const handleGraphSave = (graphData) => {
-    setSavedGraphData(graphData);
+  const handleGraphSave = (graphDataOne) => {
+    setGraphDataOne(graphDataOne);
   };
 
   return (
@@ -92,8 +102,15 @@ const EditKnowledgeDomain = () => {
         {error && <div className={styles.error}>{error}</div>}
       </div>
 
-      <NetworkGraph onSaveGraph={handleGraphSave} graphData={savedGraphData} />
-
+      <h2>Pretpostavljeni prostor znanja</h2>
+      <NetworkGraph
+        onSaveGraph={handleGraphSave} graphData={graphDataOne} showSaveButton={true} 
+      />
+    
+      <h2>Realni prostor znanja</h2>
+      <NetworkGraph graphData={graphDataTwo} predictedGraphData={graphDataOne} showSaveButton={false} 
+      />
+    
       <button onClick={handleSave} className={styles.saveButton}>
         Save Knowledge Domain
       </button>

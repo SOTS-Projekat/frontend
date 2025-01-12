@@ -13,6 +13,7 @@ import "react-toastify/dist/ReactToastify.css"; // Uvozi stilove za Toastify
 import EditKnowledgeDomain from "./Components/KnowledgeDomain/EditKnowledgeDomain";
 import RealKnowledgeDomainPage from "./Components/KnowledgeDomain/RealKnowledgeDomainPage";
 import EditRealKnowledgeDomain from "./Components/KnowledgeDomain/EditRealKnowledgeDomain";
+import HomePage from "./Components/HomePage/HomePage";
 
 function App() {
   const isAuthenticated = !!localStorage.getItem("token");
@@ -35,7 +36,7 @@ function App() {
           path: "home",
           element: (
             <ProtectedRoute>
-              <RealKnowledgeDomainPage />
+              <HomePage />
             </ProtectedRoute>
           ),
         },

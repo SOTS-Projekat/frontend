@@ -1,20 +1,19 @@
 .wrapper {
     width: fit-content;
     height: fit-content;
-    border: 2px solid black; // Slim black border
-    border-radius: 8px; // Rounded corners
-    //padding: 10px; // Padding around the SVG
-    box-sizing: border-box; // Ensures padding doesn't overflow
+    border: 2px solid black; 
+    border-radius: 8px; 
+    box-sizing: border-box; 
     display: inline-block;
   }
   
   .svg {
     display: block;
-    width: 500px;
-    height: 400px;
+    width: 1000px;
+    height: 500px;
   }
 
   .node:hover {
-    filter: drop-shadow(0px 0px 5px rgba(0, 0, 0, 0.3)); /* Soft shadow effect */
+    filter: drop-shadow(0px 0px 5px rgba(0, 0, 0, 0.3)); 
   }
   

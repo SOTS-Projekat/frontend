@@ -3,13 +3,10 @@ import './HomePage.scss';
 
 const HomePage = () => {
   
-
-
     return (
         <div className="home-wrapper">
-            <h1>REAL Knowledge Domains</h1>
-            
-
+            <h1>Welcome!</h1>
+        
         
         </div>
     );

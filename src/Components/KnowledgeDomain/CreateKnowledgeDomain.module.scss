@@ -63,4 +63,21 @@ h1 {
   &:hover {
     background-color: #57a08c;
   }
+
+  .graphContainer {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    align-items: flex-start;
+    width: 100%; /* Or set a specific width like 1200px */
+    max-width: 1200px; /* Ensure there's enough space for the graphs */
+    gap: 20px;
+  }
+  
+  
+  .graphWrapper {
+    flex: 1;
+    min-width: 300px; /* Ensure a reasonable minimum width */
+    max-width: 500px; /* Optional: limit maximum width */
+  }
 }
