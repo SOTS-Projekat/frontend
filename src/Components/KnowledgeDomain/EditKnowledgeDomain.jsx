@@ -33,7 +33,7 @@ const EditKnowledgeDomain = () => {
           links: secondGraphResponse.links || [],
         });
       } catch (error) {
-        setError("Error fetching domain data.");
+        setError("No real knowledge space for selected space.");
       }
     };
 
@@ -107,9 +107,17 @@ const EditKnowledgeDomain = () => {
         onSaveGraph={handleGraphSave} graphData={graphDataOne} showSaveButton={true} 
       />
     
-      <h2>Realni prostor znanja</h2>
-      <NetworkGraph graphData={graphDataTwo} predictedGraphData={graphDataOne} showSaveButton={false} 
-      />
+    {graphDataTwo?.nodes?.length > 0 && graphDataTwo?.links?.length > 0 && (
+  <>
+    <h2>Realni prostor znanja</h2>
+    <NetworkGraph
+      graphData={graphDataTwo}
+      predictedGraphData={graphDataOne}
+      showSaveButton={false}
+    />
+  </>
+)}
+
     
       <button onClick={handleSave} className={styles.saveButton}>
         Save Knowledge Domain

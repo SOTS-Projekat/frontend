@@ -76,7 +76,7 @@ const CreateKnowledgeDomain = () => {
         {error && <div className={styles.error}>{error}</div>}
       </div>
 
-      <NetworkGraph onSaveGraph={handleGraphSave} />
+      <NetworkGraph onSaveGraph={handleGraphSave} showSaveButton={true}  />
 
       <button onClick={handleSave} className={styles.saveButton}>
         Save Knowledge Domain

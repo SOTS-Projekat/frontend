@@ -29,6 +29,7 @@ const NetworkGraph = ({ onSaveGraph, graphData, showSaveButton, predictedGraphDa
     }));
     const updatedLinks = (graphData.links || []).map((link) => ({
       ...link,
+      //label: link.label,
       sourceNodeId: +link.sourceNode?.id,
       targetNodeId: +link.targetNode?.id,
     }));
@@ -74,7 +75,7 @@ const NetworkGraph = ({ onSaveGraph, graphData, showSaveButton, predictedGraphDa
       });
   
       svg.selectAll(".link")
-      .data(links, (d) => `${d.sourceNode.Id}-${d.targetNode.Id}`)
+      .data(links, (d) => `${d.sourceNodeId}-${d.targetNodeId}`)
       .join(
         (enter) =>
           enter
@@ -277,7 +278,7 @@ const createNode = (x, y) => {
       
       const newNode = {
         id: crypto.randomUUID(),
-        label: name,
+        name: name,
         x: x,
         y: y,
       };
@@ -393,7 +394,7 @@ const handleNodeMiddleClick = (event, sourceNode) => {
 
     const handleSaveGraph = () => {
       const transformedLinks = (links || []).map((link) => ({
-        label: link.label,
+        name: link.label,
         source: { id: link.sourceNodeId },
         target: { id: link.targetNodeId },
       }));
