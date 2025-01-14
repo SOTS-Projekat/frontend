@@ -278,7 +278,7 @@ const createNode = (x, y) => {
       
       const newNode = {
         id: crypto.randomUUID(),
-        name: name,
+        label: name,
         x: x,
         y: y,
       };
@@ -399,8 +399,14 @@ const handleNodeMiddleClick = (event, sourceNode) => {
         target: { id: link.targetNodeId },
       }));
     
+      const transformedNodes = (nodes || []).map((node) => ({
+        ...node,
+        name: node.label,
+        
+      }));
+
       const currentGraphData = {
-        nodes: nodes || [], 
+        nodes: transformedNodes || [], 
         links: transformedLinks || [], 
       };
       console.log("Graph Data to Save:", currentGraphData);

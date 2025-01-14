@@ -4,6 +4,7 @@ import test from "../../data";
 import TestService from "../Services/TestService";
 import { useParams } from "react-router";
 import LoadingIndicator from "../UI/LoadingIndicator";
+import { getDecodedToken } from "../../hooks/authUtils";
 
 const TestSolverPage = () => {
   const { id } = useParams();
@@ -14,6 +15,7 @@ const TestSolverPage = () => {
     Array(testData.questions.length).fill(null)
   );
   const [completed, setCompleted] = useState(false);
+  const decodedToken = getDecodedToken();
 
   const handleAnswerClick = (index) => {
     setSelectedAnswer(index);
@@ -49,10 +51,9 @@ const TestSolverPage = () => {
       })
     );
 
-    //promjeni
     TestService.solveTest({
       testId: testData.id,
-      userId: 1, // Pretpostavimo da je ID korisnika 123; zameni ga pravim ID-em korisnika
+      userId: decodedToken.id,
       answeredQuestions,
     });
   };
@@ -82,9 +83,9 @@ const TestSolverPage = () => {
   //   );
   // }
 
-  if (!testData) {
-    return <LoadingIndicator />;
-  }
+  // if (!testData) {
+  //   return <LoadingIndicator />;
+  // }
 
   const currentQuestion = testData.questions[currentQuestionIndex];
 

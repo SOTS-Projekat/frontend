@@ -115,6 +115,7 @@ const CreateTestPage = () => {
     fetchTests();
   }, []);
 
+  console.log(role);
   if (!role) {
     return (
       <div className={classes.container}>
@@ -227,38 +228,7 @@ const CreateTestPage = () => {
           </div>
 
           {/* Search and Test List */}
-          <div className={classes.testsSection}>
-            <input
-              type="text"
-              className={classes.searchInput}
-              placeholder="Search tests..."
-              value={searchTerm}
-              onChange={handleSearchChange}
-            />
-            <div className={classes.grid}>
-              {filteredTests.length === 0 ? (
-                <div className={classes.emptyMessage}>No tests found.</div>
-              ) : (
-                filteredTests.map((test) => (
-                  <div
-                    key={test.id}
-                    className={classes.card}
-                    onClick={() => handleTestClick(test.id)}
-                  >
-                    <div className={classes.cardHeader}>
-                      <h3>{test.title}</h3>
-                    </div>
-                    <div className={classes.cardFooter}>
-                      <span>
-                        Created on:{" "}
-                        {new Date(test.createdAt).toLocaleDateString()}
-                      </span>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
+          
         </div>
       </div>
     );
