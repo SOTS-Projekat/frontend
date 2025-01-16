@@ -1,0 +1,42 @@
+.dialog {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  width: 500px;
+  height: fit-content;
+  position: absolute;
+  top: 45%;
+  left: 50%;
+  border-radius: 3px;
+  transform: translate(-50%, -50%);
+  border: 1px solid #b4b4b4;
+  padding: 0px 40px;
+  z-index: 1000;
+  background-color: white;
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-top: 1.5rem;
+    padding-bottom: 1rem;
+    h2 {
+      font-size: 26px;
+    }
+  }
+
+  .message {
+    padding: 15px 0;
+    margin-bottom: 1.5rem;
+
+    p {
+      font-size: 1.8rem;
+    }
+  }
+
+  .buttons-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding-bottom: 15px;
+  }
+}

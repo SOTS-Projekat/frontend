@@ -78,7 +78,7 @@ const TestService = {
   getAllTests: async () => {
     const session = useSession();
     try {
-      const response = await fetch(`${API_URL}` + '/all', {
+      const response = await fetch(`${API_URL}` + "/all", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -97,6 +97,56 @@ const TestService = {
     }
   },
 
+  deleteTest: async (id) => {
+    const session = useSession();
+    try {
+      const response = await fetch(`${API_URL}/${id}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      return { success: true }; // Uspešno obrisano
+    } catch (error) {
+      throw new Error(error.message || "Failed to delete test");
+    }
+  },
+
+  exportTest: async (id) => {
+    const session = useSession();
+    try {
+      const response = await fetch(`${API_URL}/export/${id}`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${session}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      // Preuzimanje sadržaja fajla
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `test_${id}.xml`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      return { success: true };
+    } catch (error) {
+      throw new Error(error.message || "Failed to export test");
+    }
+  },
 };
 
 export default TestService;

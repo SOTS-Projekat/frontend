@@ -14,6 +14,7 @@ import EditKnowledgeDomain from "./Components/KnowledgeDomain/EditKnowledgeDomai
 import RealKnowledgeDomainPage from "./Components/KnowledgeDomain/RealKnowledgeDomainPage";
 import EditRealKnowledgeDomain from "./Components/KnowledgeDomain/EditRealKnowledgeDomain";
 import HomePage from "./Components/HomePage/HomePage";
+import AllTestsPage from "./Components/TestViewPage/AllTestsPage";
 
 function App() {
   const isAuthenticated = !!localStorage.getItem("token");
@@ -42,6 +43,14 @@ function App() {
         },
         {
           path: "test",
+          element: (
+            <ProtectedRoute>
+              <AllTestsPage />
+            </ProtectedRoute>
+          ),
+        },
+        {
+          path: "test/create",
           element: (
             <ProtectedRoute>
               <CreateTestPage />
@@ -84,7 +93,7 @@ function App() {
           path: "knowledge-domain/:id",
           element: (
             <ProtectedRoute>
-              <EditKnowledgeDomain/>
+              <EditKnowledgeDomain />
             </ProtectedRoute>
           ),
         },
@@ -92,7 +101,7 @@ function App() {
           path: "real-knowledge-domain/:id",
           element: (
             <ProtectedRoute>
-              <EditRealKnowledgeDomain/>
+              <EditRealKnowledgeDomain />
             </ProtectedRoute>
           ),
         },

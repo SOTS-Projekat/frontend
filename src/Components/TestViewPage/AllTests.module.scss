@@ -1,0 +1,110 @@
+.table-container {
+  width: 100%;
+  margin: 0px auto;
+  overflow-x: auto;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+
+  table {
+    width: 90%;
+    border-collapse: collapse;
+    background: #fff;
+    border-radius: 3px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  thead {
+    background-color: rgba(50, 88, 123, 255);
+    color: #fff;
+    text-align: left;
+  }
+
+  th {
+    padding: 12px 15px;
+    text-align: center;
+    width: 16.66%;
+  }
+  td {
+    padding: 5px 15px;
+    text-align: center;
+    width: 16.66%;
+  }
+
+  tbody {
+    font-weight: 500;
+    tr {
+      border-bottom: 1px solid #ddd;
+
+      &:nth-of-type(even) {
+        background-color: #f9f9f9;
+      }
+
+      &:hover {
+        background-color: #f1f1f1;
+      }
+    }
+
+    td {
+      color: #333;
+      .buttons-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        button {
+          margin-right: 5px;
+          padding: 7px 12px;
+          border: none;
+          border-radius: 5px;
+          cursor: pointer;
+          transition: background-color 0.3s ease;
+          border: 1px solid rgb(186, 186, 186);
+
+          &:hover {
+            background-color: rgba(50, 88, 123, 0.8);
+            color: #fff;
+          }
+        }
+
+        .edit-button {
+          background-color: #4caf50;
+        }
+
+        .delete-button {
+          background-color: #f44336;
+        }
+      }
+    }
+  }
+
+  @media (max-width: 768px) {
+    th,
+    td {
+      padding: 10px 12px;
+    }
+  }
+
+  .navigator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 15px;
+    padding: 0.5rem 1.5rem;
+    border: 1px solid gray;
+    border-radius: 30px;
+    gap: 1rem;
+
+    button {
+      width: 3rem;
+      height: 3rem;
+      border-radius: 50%;
+      outline: none;
+      border: 1px solid gray;
+      cursor: pointer;
+    }
+  }
+}
