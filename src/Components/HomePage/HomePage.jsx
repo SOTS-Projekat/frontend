@@ -1,5 +1,6 @@
 import React, {  } from 'react';
 import './HomePage.scss'; 
+import TestSolverPage from '../TestSolverPage/TestSolverPage';
 
 const HomePage = () => {
   
