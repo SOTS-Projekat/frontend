@@ -10,9 +10,9 @@ const NetworkGraph = ({ onSaveGraph, graphData, showSaveButton, predictedGraphDa
 
   const simulation = useRef(
     d3.forceSimulation()
-      .force("link", d3.forceLink().id((d) => d.id).distance(180)) // Spread links further apart
-      .force("charge", d3.forceManyBody().strength(-500)) // Increase repulsion for better spacing
-      .force("center", d3.forceCenter(500, 250)) // Center the simulation in the middle of the SVG
+      .force("link", d3.forceLink().id((d) => d.id).distance(180)) 
+      .force("charge", d3.forceManyBody().strength(-500)) 
+      .force("center", d3.forceCenter(500, 250)) 
   ).current;
   
 
@@ -29,7 +29,6 @@ const NetworkGraph = ({ onSaveGraph, graphData, showSaveButton, predictedGraphDa
     }));
     const updatedLinks = (graphData.links || []).map((link) => ({
       ...link,
-      //label: link.label,
       sourceNodeId: +link.sourceNode?.id,
       targetNodeId: +link.targetNode?.id,
     }));
