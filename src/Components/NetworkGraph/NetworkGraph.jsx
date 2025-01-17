@@ -140,16 +140,18 @@ const NetworkGraph = ({ onSaveGraph, graphData, showSaveButton, predictedGraphDa
             .attr("class", "node")
             .attr("r", 20)
             .attr("fill", (d) => {
-              if (predictedGraphData && isNodeDifferent(d, predictedNodes)) {
-                return "blue"; 
+              if (d.correct === false) {
+                return "red"; 
               }
-              return "red"; 
+              if (d.correct === true) {
+                return "green"; 
+              }
             })
             .attr("stroke", "black")
             .attr("stroke-width", 2)
             .style("cursor", "pointer")
             .on("mousedown", (event, d) => {
-              if (event.button === 1) { // Check for middle mouse button
+              if (event.button === 1) { 
                 handleNodeMiddleClick(event, d);
               }
             }) 
@@ -175,11 +177,12 @@ const NetworkGraph = ({ onSaveGraph, graphData, showSaveButton, predictedGraphDa
           
         update
         .attr("fill", (d) => {
-          // Update the fill dynamically if the node changes
-          if (predictedGraphData && isNodeDifferent(d, predictedNodes)) {
-            return "blue";
+          if (d.correct === false) {
+            return "red"; // Node is incorrect
           }
-          return "red";
+          if (d.correct === true) {
+            return "green"; // Node is correct
+          }
         }),
 
         (exit) => exit.remove()
@@ -376,10 +379,6 @@ const handleNodeMiddleClick = (event, sourceNode) => {
 
         return [...prevLinks, newLink];
       });
-    };
-
-    const isNodeDifferent = (node, predictedNodes) => {
-      return !predictedNodes.some((predNode) => predNode.label === node.label);
     };
 
     const isLinkDifferent = (link, predictedLinks) => {
