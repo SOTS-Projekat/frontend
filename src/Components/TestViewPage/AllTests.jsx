@@ -24,17 +24,20 @@ const AllTests = ({ data, onEdit, onDelete, onExport }) => {
 
   const handleViewResults = async (testId) => {
     try {
-      const nodes = await KnowledgeDomainService.getCorrectStudentAnswers(testId, decodedToken.id); 
+      const nodes = await KnowledgeDomainService.getCorrectStudentAnswers(
+        testId,
+        decodedToken.id
+      );
       const fetchedGraphData = {
         nodes: nodes || [],
-        links: [], 
+        links: [],
       };
-      setGraphData(fetchedGraphData); 
+      setGraphData(fetchedGraphData);
     } catch (error) {
       console.error("Failed to fetch graph data:", error);
     }
   };
-  
+
   return (
     <div className={classes["table-container"]}>
       {showDeleteDialog && (
@@ -77,29 +80,33 @@ const AllTests = ({ data, onEdit, onDelete, onExport }) => {
                       >
                         Izmjeni
                       </button> */}
+                      {decodedToken?.role === "PROFESSOR" && (
+                        <>
+                          <button
+                            onClick={() => {
+                              setSelectedRecord(test);
+                              setShowDeleteDialog(true);
+                            }}
+                            className={classes[""]}
+                          >
+                            Obriši
+                          </button>
+                          <button
+                            onClick={() => {
+                              onExport(test.id);
+                            }}
+                            className={classes[""]}
+                          >
+                            Export to XML
+                          </button>
+                        </>
+                      )}
                       <button
-                        onClick={() => {
-                          setSelectedRecord(test);
-                          setShowDeleteDialog(true);
-                        }}
+                        onClick={() => handleViewResults(test.id)}
                         className={classes[""]}
                       >
-                        Obriši
+                        View Results
                       </button>
-                      <button
-                        onClick={() => {
-                          onExport(test.id);
-                        }}
-                        className={classes[""]}
-                      >
-                        Export to XML
-                      </button>
-                      <button
-                      onClick={() => handleViewResults(test.id)}
-                      className={classes[""]}
-                    >
-                      View Results
-                    </button>
                     </div>
                   </td>
                 </td>
@@ -136,7 +143,6 @@ const AllTests = ({ data, onEdit, onDelete, onExport }) => {
           <NetworkGraph graphData={graphData} showSaveButton={false} />
         </div>
       )}
-
     </div>
   );
 };

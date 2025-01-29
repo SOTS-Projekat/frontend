@@ -2,11 +2,11 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 20px;
+  padding: 1.5rem;
   background-color: #ffffff;
   border-radius: 8px;
   box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
-  margin-top: 2rem;
+  margin-top: 1rem;
 }
 
 h1 {
@@ -45,8 +45,8 @@ h1 {
 }
 
 .error {
-  color: #e63946;
-  font-size: 0.9rem;
+  color: rgb(255, 90, 90);
+  font-size: 1.4rem;
   margin-bottom: 10px;
 }
 
@@ -73,8 +73,7 @@ h1 {
     max-width: 1200px; /* Ensure there's enough space for the graphs */
     gap: 20px;
   }
-  
-  
+
   .graphWrapper {
     flex: 1;
     min-width: 300px; /* Ensure a reasonable minimum width */

@@ -4,27 +4,39 @@ import { getDecodedToken } from "../../hooks/authUtils";
 import KnowledgeDomainService from "../Services/KnowledgeDomainService";
 import { useNavigate } from "react-router";
 import NetworkGraph from "../NetworkGraph/NetworkGraph";
+import InputField from "../UI/InputField";
+import Button from "../UI/Button";
 
 const CreateKnowledgeDomain = () => {
   const [domainName, setDomainName] = useState("");
   const [description, setDescription] = useState("");
   const [savedGraphData, setSavedGraphData] = useState(null);
-  const [error, setError] = useState("");
+  const [nameError, setNameError] = useState("");
+  const [descriptionError, setDescriptionError] = useState("");
+  const [graphError, setGraphError] = useState("");
 
   const navigate = useNavigate();
 
   const handleSave = () => {
     if (!domainName.trim()) {
-      setError("Please enter a valid domain name.");
-      return;
+      setNameError("Please enter a valid domain name.");
+    }
+
+    if (!description.trim()) {
+      setDescriptionError("Please enter description.");
     }
 
     if (!savedGraphData || savedGraphData.nodes.length === 0) {
-      setError("Please create and save a graph before submitting.");
+      setGraphError("Please create and save a graph before submitting.");
+    }
+
+    if (nameError === "" || descriptionError === "" || graphError === "") {
       return;
     }
 
-    setError("");
+    setNameError("");
+    setDescriptionError("");
+    setGraphError("");
 
     const decodedToken = getDecodedToken();
 
@@ -51,36 +63,34 @@ const CreateKnowledgeDomain = () => {
       <h1 className={styles.header}>Create Knowledge Domain</h1>
 
       <div className={styles.form}>
-        <label htmlFor="domainName" className={styles.label}>
-          Domain Name
-        </label>
-        <input
-          id="domainName"
+        <InputField
           type="text"
+          label="Domain Name*"
+          placeholder="Insert name"
           value={domainName}
           onChange={(e) => setDomainName(e.target.value)}
-          placeholder="Enter the domain name"
-          className={styles.input}
+          error={nameError}
+          inputStyle={{ height: "40px" }}
         />
-        <label htmlFor="description" className={styles.label}>
-          Description
-        </label>
-        <input
-          id="description"
+        <InputField
           type="text"
+          label="Description*"
+          placeholder="Insert description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="Enter the description"
-          className={styles.input}
+          error={descriptionError}
+          inputStyle={{ height: "40px" }}
         />
-        {error && <div className={styles.error}>{error}</div>}
       </div>
 
-      <NetworkGraph onSaveGraph={handleGraphSave} showSaveButton={true}  />
-
-      <button onClick={handleSave} className={styles.saveButton}>
-        Save Knowledge Domain
-      </button>
+      <NetworkGraph onSaveGraph={handleGraphSave} showSaveButton={true} />
+      {graphError && <div className={styles.error}>{graphError}</div>}
+      <Button
+        text="Create knowledge domain"
+        width="250px"
+        height="35px"
+        onClick={handleSave}
+      />
     </div>
   );
 };
