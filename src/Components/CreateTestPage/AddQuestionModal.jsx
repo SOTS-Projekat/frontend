@@ -67,7 +67,7 @@ const AddQuestionModal = ({ onCreate, onClose, nodeOptionsProp }) => {
       <Backdrop onClose={onClose} />
       <div className={classes.dialog}>
         <div className={classes.header}>
-          <h2>Dodaj pitanje</h2>
+          <h2>Add question</h2>
         </div>
         <div className={classes["inputs-container"]}>
           <div className={classes["question-input"]}>

@@ -173,7 +173,7 @@ const CreateTestPage = () => {
         )}
         <div className={classes["test-container"]}>
           <div className={classes.header}>
-            <h1>Kreiraj test</h1>
+            <h1>Create test</h1>
           </div>
           <div className={classes.content}>
             <div className={classes["container-input"]}>
@@ -187,11 +187,13 @@ const CreateTestPage = () => {
                   error={""}
                   inputStyle={{ height: "40px" }}
                 />
-                <Button
-                  text="Add question"
-                  width="170px"
-                  onClick={handleOpenAddQuestionModal}
-                />
+                <div className={classes["add-question-button"]}>
+                  <Button
+                    text="Add question"
+                    width="170px"
+                    onClick={handleOpenAddQuestionModal}
+                  />
+                </div>
               </div>
               <div className={classes.input}>
                 <DropdownList
@@ -228,7 +230,6 @@ const CreateTestPage = () => {
           </div>
 
           {/* Search and Test List */}
-          
         </div>
       </div>
     );

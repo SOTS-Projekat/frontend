@@ -143,7 +143,6 @@
   font-size: 1.2rem;
 }
 
-
 .cardFooter {
   background-color: #f9f9f9;
   padding: 10px 15px;
@@ -159,7 +158,14 @@
 .testsSection {
   display: flex;
   flex-direction: column; /* Stacks items vertically */
-  align-items: center;   /* Centers children horizontally */
+  align-items: center; /* Centers children horizontally */
   width: 100%;
-  padding: 20px 0;       /* Optional: Add space around */
+  padding: 20px 0; /* Optional: Add space around */
+}
+
+.add-question-button {
+  display: flex;
+  align-items: end;
+  height: 7rem;
+  margin-bottom: 1rem;
 }
