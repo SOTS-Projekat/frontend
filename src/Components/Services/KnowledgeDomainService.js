@@ -125,7 +125,32 @@ const KnowledgeDomainService = {
     }
   },
 
+  getCorrectStudentAnswers: async (testId, studentId) => {
+    const session = useSession();
+    try {
+      const url = new URL(`${API_URL}/correct-answers`);
+      url.searchParams.append("testId", testId);
+      url.searchParams.append("studentId", studentId);
 
+      const response = await fetch(url.toString(), {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data; 
+    } catch (error) {
+      console.log(error);
+      throw new Error(error.message || "Failed to get correct student answers.");
+    }
+  },
 
 };
 

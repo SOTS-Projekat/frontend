@@ -8,7 +8,6 @@ const EditKnowledgeDomain = () => {
   const { id } = useParams(); 
   const [domainName, setDomainName] = useState("");
   const [description, setDescription] = useState("");
-  //const [savedGraphData, setSavedGraphData] = useState(null);
   const [graphDataOne, setGraphDataOne] = useState(null);
   const [graphDataTwo, setGraphDataTwo] = useState(null);
   const [error, setError] = useState("");

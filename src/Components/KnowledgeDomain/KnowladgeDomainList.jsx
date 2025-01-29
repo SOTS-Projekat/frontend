@@ -19,8 +19,9 @@ const KnowledgeDomainList = ({ knowledgeDomains, onSelect }) => {
   };
 
   const filteredDomains = knowledgeDomains.filter((domain) =>
-    domain.name.toLowerCase().includes(searchTerm)
+    domain.name.toLowerCase().includes(searchTerm) && !domain.name.toLowerCase().includes("_real")
   );
+  
 
   return (
     <div className={styles.container}>

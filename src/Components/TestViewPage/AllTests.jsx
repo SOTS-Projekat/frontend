@@ -2,12 +2,17 @@ import { useState } from "react";
 import classes from "./AllTests.module.scss";
 import { GrTest } from "react-icons/gr";
 import DeleteModal from "./DeleteModal";
+import KnowledgeDomainService from "../Services/KnowledgeDomainService";
+import NetworkGraph from "../NetworkGraph/NetworkGraph";
+import { getDecodedToken } from "../../hooks/authUtils";
 
 const AllTests = ({ data, onEdit, onDelete, onExport }) => {
   const [currentlyActivePage, setCurrentlyActivePage] = useState(1);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   //const [showEditDialog, setShowEditDialog] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState();
+  const [graphData, setGraphData] = useState(null);
+  const decodedToken = getDecodedToken();
 
   const totalNumberOfPages = Math.ceil(data.length / 9);
 
@@ -17,6 +22,19 @@ const AllTests = ({ data, onEdit, onDelete, onExport }) => {
     groupedData.push(group);
   }
 
+  const handleViewResults = async (testId) => {
+    try {
+      const nodes = await KnowledgeDomainService.getCorrectStudentAnswers(testId, decodedToken.id); 
+      const fetchedGraphData = {
+        nodes: nodes || [],
+        links: [], 
+      };
+      setGraphData(fetchedGraphData); 
+    } catch (error) {
+      console.error("Failed to fetch graph data:", error);
+    }
+  };
+  
   return (
     <div className={classes["table-container"]}>
       {showDeleteDialog && (
@@ -76,6 +94,12 @@ const AllTests = ({ data, onEdit, onDelete, onExport }) => {
                       >
                         Export to XML
                       </button>
+                      <button
+                      onClick={() => handleViewResults(test.id)}
+                      className={classes[""]}
+                    >
+                      View Results
+                    </button>
                     </div>
                   </td>
                 </td>
@@ -105,6 +129,14 @@ const AllTests = ({ data, onEdit, onDelete, onExport }) => {
         </button>
         <div>{totalNumberOfPages}</div>
       </div>
+
+      {graphData && (
+        <div className={classes["graph-container"]}>
+          <h2>Studentovo stanje znanja</h2>
+          <NetworkGraph graphData={graphData} showSaveButton={false} />
+        </div>
+      )}
+
     </div>
   );
 };
