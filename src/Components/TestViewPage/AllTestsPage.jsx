@@ -4,10 +4,13 @@ import TestService from "../Services/TestService";
 import AllTests from "./AllTests";
 import { useNavigate } from "react-router";
 import Button from "../UI/Button";
+import { getDecodedToken } from "../../hooks/authUtils";
 
 const AllTestsPage = () => {
   const [tests, setTests] = useState([]);
   const navigate = useNavigate();
+  const decodedToken = getDecodedToken();
+  console.log(decodedToken);
 
   const fetchTests = async () => {
     try {
@@ -40,11 +43,13 @@ const AllTestsPage = () => {
   return (
     <div className={classes.container}>
       <div className={classes.actions}>
-        <Button
-          text="Add test"
-          onClick={() => navigate("create")}
-          backgroundColor="rgba(50, 88, 123, 255)"
-        />
+        {decodedToken.role === "PROFESSOR" && (
+          <Button
+            text="Add test"
+            onClick={() => navigate("create")}
+            backgroundColor="rgba(50, 88, 123, 255)"
+          />
+        )}
       </div>
       <AllTests
         data={tests}

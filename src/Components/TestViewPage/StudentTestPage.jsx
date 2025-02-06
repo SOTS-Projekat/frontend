@@ -4,18 +4,23 @@ import styles from "./StudentTestPage.module.scss"; // Importujemo stilove za st
 import { useParams } from "react-router";
 import LoadingIndicator from "../UI/LoadingIndicator";
 import ResultService from "../Services/ResultService";
+import { getDecodedToken } from "../../hooks/authUtils";
 
 const StudentTestPage = () => {
   const { id } = useParams();
   const [test, setTest] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const decodedToken = getDecodedToken();
 
   useEffect(() => {
     const fetchResult = async () => {
       setLoading(true);
       try {
-        const fetchedResult = await ResultService.getResultById(id);
+        const fetchedResult = await ResultService.getResultByStudentIdAndTestId(
+          decodedToken.id,
+          id
+        );
         console.log(fetchedResult);
         setTest(fetchedResult);
         setLoading(false);

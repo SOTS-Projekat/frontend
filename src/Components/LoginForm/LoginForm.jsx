@@ -18,6 +18,7 @@ const LoginForm = () => {
       const token = await AuthenticationService.login(username, password);
       console.log("Login successful, token:", token);
       localStorage.setItem("token", token);
+      console.log(token);
       setUsername("");
       setPassword("");
       navigate("/home");

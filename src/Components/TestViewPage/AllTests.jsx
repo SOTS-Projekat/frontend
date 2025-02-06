@@ -5,6 +5,7 @@ import DeleteModal from "./DeleteModal";
 import KnowledgeDomainService from "../Services/KnowledgeDomainService";
 import NetworkGraph from "../NetworkGraph/NetworkGraph";
 import { getDecodedToken } from "../../hooks/authUtils";
+import { useNavigate } from "react-router";
 
 const AllTests = ({ data, onEdit, onDelete, onExport }) => {
   const [currentlyActivePage, setCurrentlyActivePage] = useState(1);
@@ -13,6 +14,7 @@ const AllTests = ({ data, onEdit, onDelete, onExport }) => {
   const [selectedRecord, setSelectedRecord] = useState();
   const [graphData, setGraphData] = useState(null);
   const decodedToken = getDecodedToken();
+  const navigate = useNavigate();
 
   const totalNumberOfPages = Math.ceil(data.length / 9);
 
@@ -99,14 +101,38 @@ const AllTests = ({ data, onEdit, onDelete, onExport }) => {
                           >
                             Export to XML
                           </button>
+                          <button
+                            onClick={() => handleViewResults(test.id)}
+                            className={classes[""]}
+                          >
+                            View Results
+                          </button>
                         </>
                       )}
-                      <button
-                        onClick={() => handleViewResults(test.id)}
-                        className={classes[""]}
-                      >
-                        View Results
-                      </button>
+                      {decodedToken?.role === "STUDENT" && !test.solved && (
+                        <>
+                          <button
+                            onClick={() => {
+                              navigate("/test/" + test.id);
+                            }}
+                            className={classes[""]}
+                          >
+                            Solve test
+                          </button>
+                        </>
+                      )}
+                      {decodedToken?.role === "STUDENT" && test.solved && (
+                        <>
+                          <button
+                            onClick={() => {
+                              navigate("/test/result/" + test.id);
+                            }}
+                            className={classes[""]}
+                          >
+                            View result
+                          </button>
+                        </>
+                      )}
                     </div>
                   </td>
                 </td>

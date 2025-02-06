@@ -1,3 +1,4 @@
+import { getDecodedToken } from "../../hooks/authUtils";
 import { useSession } from "../../hooks/useSession";
 
 const API_URL = "http://localhost:8080/api/test";
@@ -77,14 +78,27 @@ const TestService = {
 
   getAllTests: async () => {
     const session = useSession();
+    const decodedToken = getDecodedToken();
     try {
-      const response = await fetch(`${API_URL}` + "/all", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${session}`,
-        },
-      });
+      let response;
+      if (decodedToken.role === "PROFESSOR") {
+        response = await fetch(`${API_URL}/all`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session}`,
+          },
+        });
+      } else {
+        const studentId = decodedToken.id;
+        response = await fetch(`${API_URL}/all-for-student/${studentId}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session}`,
+          },
+        });
+      }
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);

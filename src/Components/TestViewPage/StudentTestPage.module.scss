@@ -1,14 +1,11 @@
 $pageBackground: #f0f2f5;
-$primaryColor: #4a90e2;
+$primaryColor: rgb(50, 88, 123);
 $fontXLarge: 2rem;
 
 .pageContainer {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
-  background-color: $pageBackground;
-  padding: 40px;
 
   h1 {
     font-size: $fontXLarge;

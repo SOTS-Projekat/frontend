@@ -11,7 +11,7 @@ export default function Navigation() {
   const role = decodedToken?.role;
 
   const handleLogout = () => {
-    localStorage.setItem("session", JSON.stringify(""));
+    //localStorage.setItem("session", JSON.stringify(""));
     localStorage.removeItem("token");
     navigate("/");
   };

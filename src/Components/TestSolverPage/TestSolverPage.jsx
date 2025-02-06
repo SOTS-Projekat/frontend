@@ -4,61 +4,71 @@ import TestService from "../Services/TestService";
 import { useParams } from "react-router";
 import LoadingIndicator from "../UI/LoadingIndicator";
 import { getDecodedToken } from "../../hooks/authUtils";
+import Button from "../UI/Button";
 
 const TestSolverPage = () => {
   const { id } = useParams();
-  const [testData, setTestData] = useState();
+  const [testData, setTestData] = useState(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
-  const [answers, setAnswers] = useState();
+  const [answers, setAnswers] = useState([]);
   const [completed, setCompleted] = useState(false);
-  const [currentQuestion, setCurrentQuestion] = useState();
   const decodedToken = getDecodedToken();
 
-  // console.log("------Questions--------");
-  // console.log(testData.questions);
+  useEffect(() => {
+    const fetchTest = async () => {
+      try {
+        const fetchedTest = await TestService.getTestById(id);
+        setTestData(fetchedTest);
+        setAnswers(new Array(fetchedTest.questions.length).fill(null));
+        setCurrentQuestionIndex(0);
+      } catch (error) {
+        console.error("Greška prilikom učitavanja testa:", error);
+      }
+    };
+    fetchTest();
+  }, [id]);
+
+  useEffect(() => {
+    if (testData) {
+      setSelectedAnswer(answers[currentQuestionIndex]);
+    }
+  }, [currentQuestionIndex, testData]);
+
   const handleAnswerClick = (index) => {
-    // console.log("------Answers-------");
-    // console.log(answers);
     setSelectedAnswer(index);
+    setAnswers((prevAnswers) => {
+      const updatedAnswers = [...prevAnswers];
+      updatedAnswers[currentQuestionIndex] = index;
+      return updatedAnswers;
+    });
   };
 
   const handleNextQuestion = () => {
-    const updatedAnswers = [...answers];
-    updatedAnswers[currentQuestionIndex] = selectedAnswer;
-    setAnswers(updatedAnswers);
-    setCurrentQuestion(testData.questions[currentQuestionIndex + 1]);
-    setCurrentQuestionIndex(currentQuestionIndex + 1);
-    setSelectedAnswer(answers[currentQuestionIndex + 1] || null);
-    console.log(answers);
+    if (currentQuestionIndex < testData.questions.length - 1) {
+      setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
+    }
   };
 
   const handlePrevQuestion = () => {
-    setCurrentQuestion(testData.questions[currentQuestionIndex - 1]);
-    setCurrentQuestionIndex(currentQuestionIndex - 1);
-    setSelectedAnswer(answers[currentQuestionIndex - 1] || null);
+    if (currentQuestionIndex > 0) {
+      setCurrentQuestionIndex((prevIndex) => prevIndex - 1);
+    }
   };
 
-  const handleFinishTest = () => {
-    const updatedAnswers = [...answers];
-    updatedAnswers[currentQuestionIndex] = selectedAnswer;
-    setAnswers(updatedAnswers);
+  const handleFinishTest = async () => {
     setCompleted(true);
-
     const score = calculateScore();
 
-    // Strukturiranje podataka za ResultResponse
-    const answeredQuestions = updatedAnswers.map(
-      (answerIndex, questionIndex) => ({
-        questionId: testData.questions[questionIndex].id,
-        answerId:
-          answerIndex !== null
-            ? testData.questions[questionIndex].offeredAnswers[answerIndex].id
-            : null,
-      })
-    );
+    const answeredQuestions = answers.map((answerIndex, questionIndex) => ({
+      questionId: testData.questions[questionIndex].id,
+      answerId:
+        answerIndex !== null
+          ? testData.questions[questionIndex].offeredAnswers[answerIndex].id
+          : null,
+    }));
 
-    TestService.solveTest({
+    await TestService.solveTest({
       testId: id,
       userId: decodedToken.id,
       answeredQuestions,
@@ -67,7 +77,7 @@ const TestSolverPage = () => {
   };
 
   const calculateScore = () => {
-    const pointsPerQuestion = 100 / testData.questions.length; // Bodovi po pitanju
+    const pointsPerQuestion = 100 / testData.questions.length;
     return answers.reduce((score, answerIndex, i) => {
       return (
         score +
@@ -79,87 +89,54 @@ const TestSolverPage = () => {
     }, 0);
   };
 
-  // if (completed) {
-  //   const score = calculateScore();
-  //   return (
-  //     <div className={styles.completed}>
-  //       <h2>Test završen!</h2>
-  //       <p>
-  //         Vaš rezultat: {score} / {testData.questions.length}
-  //       </p>
-  //       <p>Hvala na učestvovanju.</p>
-  //     </div>
-  //   );
-  // }
+  if (!testData) {
+    return <LoadingIndicator />;
+  }
 
-  // if (!testData) {
-  //   return <LoadingIndicator />;
-  // }
-
-  //const currentQuestion = ;
-
-  useEffect(() => {
-    const fetchTest = async () => {
-      try {
-        console.log(id);
-        const fetchedTest = await TestService.getTestById(id);
-        console.log(fetchedTest);
-        setTestData(fetchedTest);
-        setAnswers(Array(fetchedTest.questions.length).fill(null));
-        setCurrentQuestion(fetchedTest.questions[currentQuestionIndex]);
-      } catch (error) {
-        console.error("Greška prilikom učitavanja testa:", error);
-      }
-    };
-
-    fetchTest();
-  }, [id]);
+  const currentQuestion = testData.questions[currentQuestionIndex];
 
   return (
     <div className={styles.container}>
-      {testData && (
-        <div className={styles.testContainer}>
-          <h1>{testData.title}</h1>
-          <div className={styles.questionContainer}>
-            <h2>{currentQuestion.questionText}</h2>
-            <div className={styles.answers}>
-              {currentQuestion.offeredAnswers.map((answer, index) => (
-                <button
-                  key={index}
-                  onClick={() => handleAnswerClick(index)}
-                  className={`${styles.answerButton} ${
-                    selectedAnswer === index ? styles.selected : ""
-                  }`}
-                >
-                  {answer.answerText}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div className={styles.navigationButtons}>
-            <button
-              onClick={handlePrevQuestion}
-              className={styles.navButton}
-              disabled={currentQuestionIndex === 0}
-            >
-              Prethodno pitanje
-            </button>
-            {currentQuestionIndex < testData.questions.length - 1 ? (
-              <button onClick={handleNextQuestion} className={styles.navButton}>
-                Sledeće pitanje
-              </button>
-            ) : (
+      <div className={styles.testContainer}>
+        <h1>{testData.title}</h1>
+        <div className={styles.questionContainer}>
+          <h2>{currentQuestion.questionText}</h2>
+          <div className={styles.answers}>
+            {currentQuestion.offeredAnswers.map((answer, index) => (
               <button
-                onClick={handleFinishTest}
-                className={styles.finishButton}
+                key={index}
+                onClick={() => handleAnswerClick(index)}
+                className={`${styles.answerButton} ${
+                  selectedAnswer === index ? styles.selected : ""
+                }`}
               >
-                Završi test
+                {answer.answerText}
               </button>
-            )}
+            ))}
           </div>
         </div>
-      )}
-      {!testData && <LoadingIndicator />}
+        <div className={styles.navigationButtons}>
+          <Button
+            text="Prethodno pitanje"
+            onClick={handlePrevQuestion}
+            disabled={currentQuestionIndex === 0}
+            width="150px"
+          />
+          {currentQuestionIndex < testData.questions.length - 1 ? (
+            <Button
+              text="Naredno pitanje"
+              onClick={handleNextQuestion}
+              width="150px"
+            />
+          ) : (
+            <Button
+              text="Završi test"
+              onClick={handleFinishTest}
+              width="150px"
+            />
+          )}
+        </div>
+      </div>
     </div>
   );
 };

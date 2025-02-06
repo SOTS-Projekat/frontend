@@ -3,10 +3,10 @@ import { useSession } from "../../hooks/useSession";
 const API_URL = "http://localhost:8080/api/result";
 
 const ResultService = {
-  getResultById: async (id) => {
+  getResultByStudentIdAndTestId: async (studentId, testId) => {
     const session = useSession();
     try {
-      const response = await fetch(`${API_URL}/${id}`, {
+      const response = await fetch(`${API_URL}/${studentId}/${testId}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
