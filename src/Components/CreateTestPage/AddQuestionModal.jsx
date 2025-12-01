@@ -11,8 +11,8 @@ const AddQuestionModal = ({ onCreate, onClose, nodeOptionsProp }) => {
   const [question, setQuestion] = useState("");
   const [answers, setAnswers] = useState([]);
   const [inputAnswer, setInputAnswer] = useState("");
-  const [showInput, setShowInput] = useState(false);
-  const [nodeOptions, setNodeOptions] = useState(nodeOptionsProp);
+  const [] = useState(false);
+  const [nodeOptions] = useState(nodeOptionsProp);
   const [selectedNode, setSelectedNode] = useState();
 
   const handleAddQuestion = () => {
@@ -88,7 +88,6 @@ const AddQuestionModal = ({ onCreate, onClose, nodeOptionsProp }) => {
                 options={nodeOptions ? nodeOptions : []}
                 value={selectedNode}
                 style={{ width: "auto" }}
-                //mode={"multiple"}
                 allowClear={true}
                 onClear={() => setSelectedNode()}
                 onChangeDropdown={nodeChangeHandler}

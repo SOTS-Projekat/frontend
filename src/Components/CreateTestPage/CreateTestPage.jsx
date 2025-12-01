@@ -3,13 +3,13 @@ import classes from "./CreateTestPage.module.scss";
 import InputField from "../UI/InputField";
 import Button from "../UI/Button";
 import AddQuestionModal from "./AddQuestionModal";
-import Question from "./Question"; // Import your Question component
+import Question from "./Question";
 import TestService from "../Services/TestService";
 import DropdownList from "../UI/DropdownList";
 import KnowledgeDomainService from "../Services/KnowledgeDomainService";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router";
-import { getDecodedToken } from "../../hooks/authUtils";
+import { useSession } from "../../hooks/useSession";
 
 const CreateTestPage = () => {
   const navigate = useNavigate();
@@ -22,13 +22,14 @@ const CreateTestPage = () => {
   const [knowledgeDomains, setKnowledgeDomains] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [tests, setTests] = useState([]);
-  const decodedToken = getDecodedToken();
 
-  const role = decodedToken?.role;
+  const { user, token } = useSession();
+
+  const role = user.role;
 
   const fetchTests = async () => {
     try {
-      const data = await TestService.getAllTests();
+      const data = await TestService.getAllTests(user.role, user.id, token);
       setTests(data);
     } catch (error) {
       console.error("Error fetching tests:", error.message);
@@ -37,7 +38,7 @@ const CreateTestPage = () => {
 
   const fetchKnowledgeDomains = async () => {
     try {
-      const data = await KnowledgeDomainService.getById();
+      const data = await KnowledgeDomainService.getById(user.id, token);
       setKnowledgeDomains(data);
 
       const knowledgeDomainData = [];
@@ -74,11 +75,18 @@ const CreateTestPage = () => {
 
   const handleCreateTest = () => {
     if (questions.length !== 0 && title !== "") {
-      TestService.createTest({
-        title: title,
+      const payload = {
+        title,
         knowledgeDomainId: selectedKnowledgeDomain,
-        questions: questions,
-      });
+        questions, // ensure each answer has boolean `correct`
+      };
+
+      console.log("CreateTest payload:", payload);
+
+      TestService.createTest(payload, token);
+
+      toast.success("Test created successfully");
+      navigate("/test");
     } else {
       toast.info("Morate dodati naslov i pitanja");
     }
@@ -99,11 +107,11 @@ const CreateTestPage = () => {
   };
 
   const handleOpenAddQuestionModal = () => {
-    if (selectedKnowledgeDomain.length) {
+    if (!selectedKnowledgeDomain) {
       toast.info("Select knowledge domain.");
-    } else {
-      setShowAddQuestionModal(true);
+      return;
     }
+    setShowAddQuestionModal(true);
   };
 
   const handleTestClick = (testId) => {
@@ -202,7 +210,6 @@ const CreateTestPage = () => {
                   options={knowledgeDomainOptions || []}
                   value={selectedKnowledgeDomain}
                   style={{ width: "300px" }}
-                  //mode={"multiple"}
                   allowClear={true}
                   onClear={() => setSelectedKnowledgeDomain()}
                   onChangeDropdown={knowledgeDomainChangeHandler}

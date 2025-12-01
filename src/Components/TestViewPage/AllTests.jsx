@@ -1,20 +1,19 @@
 import { useState } from "react";
 import classes from "./AllTests.module.scss";
-import { GrTest } from "react-icons/gr";
 import DeleteModal from "./DeleteModal";
 import KnowledgeDomainService from "../Services/KnowledgeDomainService";
 import NetworkGraph from "../NetworkGraph/NetworkGraph";
-import { getDecodedToken } from "../../hooks/authUtils";
+import { useSession } from "../../hooks/useSession";
 import { useNavigate } from "react-router";
 
-const AllTests = ({ data, onEdit, onDelete, onExport }) => {
+const AllTests = ({ data, onDelete, onExport }) => {
   const [currentlyActivePage, setCurrentlyActivePage] = useState(1);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  //const [showEditDialog, setShowEditDialog] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState();
   const [graphData, setGraphData] = useState(null);
-  const decodedToken = getDecodedToken();
   const navigate = useNavigate();
+
+  const { token, user } = useSession();
 
   const totalNumberOfPages = Math.ceil(data.length / 9);
 
@@ -28,7 +27,8 @@ const AllTests = ({ data, onEdit, onDelete, onExport }) => {
     try {
       const nodes = await KnowledgeDomainService.getCorrectStudentAnswers(
         testId,
-        decodedToken.id
+        user.id,
+        token
       );
       const fetchedGraphData = {
         nodes: nodes || [],
@@ -51,18 +51,13 @@ const AllTests = ({ data, onEdit, onDelete, onExport }) => {
           onClose={() => setShowDeleteDialog(false)}
         />
       )}
-      {/* {showEditDialog && (
-        <EditRecordModal
-          onEdit={onEdit}
-          onClose={() => setShowEditDialog(false)}
-          id={selectedRecord.id}
-        />
-      )} */}
       <table>
         <thead>
-          <th>ID</th>
-          <th>Test title</th>
-          <th>Actions</th>
+          <tr>
+            <th>ID</th>
+            <th>Test title</th>
+            <th>Actions</th>
+          </tr>
         </thead>
         <tbody>
           {groupedData[currentlyActivePage - 1] &&
@@ -73,16 +68,7 @@ const AllTests = ({ data, onEdit, onDelete, onExport }) => {
                 <td>
                   <td>
                     <div className={classes["buttons-container"]}>
-                      {/* <button
-                        onClick={() => {
-                          setSelectedRecord(record);
-                          setShowEditDialog(true);
-                        }}
-                        className={classes[""]}
-                      >
-                        Izmjeni
-                      </button> */}
-                      {decodedToken?.role === "PROFESSOR" && (
+                      {user.role === "PROFESSOR" && (
                         <>
                           <button
                             onClick={() => {
@@ -109,7 +95,7 @@ const AllTests = ({ data, onEdit, onDelete, onExport }) => {
                           </button>
                         </>
                       )}
-                      {decodedToken?.role === "STUDENT" && !test.solved && (
+                      {user.role === "STUDENT" && !test.solved && (
                         <>
                           <button
                             onClick={() => {
@@ -121,7 +107,7 @@ const AllTests = ({ data, onEdit, onDelete, onExport }) => {
                           </button>
                         </>
                       )}
-                      {decodedToken?.role === "STUDENT" && test.solved && (
+                      {user.role === "STUDENT" && test.solved && (
                         <>
                           <button
                             onClick={() => {

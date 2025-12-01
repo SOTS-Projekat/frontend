@@ -194,13 +194,6 @@ const GraphBuilder = ({ onSaveGraph }) => {
             ctx.fillStyle = "black";
             ctx.fillText(label, node.x, node.y);
 
-            // Crtanje čvora kao kruga sa sivim ivicama
-            // ctx.beginPath();
-            // ctx.arc(node.x, node.y, 15, 0, 2 * Math.PI, false);
-            // ctx.fillStyle = node.color || "#007bff";
-            // ctx.fill();
-            // ctx.strokeStyle = "black";
-            // ctx.lineWidth = 0.3;
             ctx.stroke();
           }}
           width={800}

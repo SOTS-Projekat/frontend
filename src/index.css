@@ -12,9 +12,6 @@ body {
   background-color: #f5f5f5;
   min-height: 100vh;
   font-family: "Poppins", sans-serif;
-  /* display: flex;
-  justify-content: center;
-  align-items: center; */
 }
 
 .Toastify__toast {

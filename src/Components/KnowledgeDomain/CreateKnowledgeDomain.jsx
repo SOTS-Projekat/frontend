@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import styles from "./CreateKnowledgeDomain.module.scss";
-import { getDecodedToken } from "../../hooks/authUtils";
 import KnowledgeDomainService from "../Services/KnowledgeDomainService";
 import { useNavigate } from "react-router";
 import NetworkGraph from "../NetworkGraph/NetworkGraph";
 import InputField from "../UI/InputField";
 import Button from "../UI/Button";
+import { useSession } from "../../hooks/useSession";
 
 const CreateKnowledgeDomain = () => {
   const [domainName, setDomainName] = useState("");
@@ -15,47 +15,55 @@ const CreateKnowledgeDomain = () => {
   const [descriptionError, setDescriptionError] = useState("");
   const [graphError, setGraphError] = useState("");
 
+  const { user, token } = useSession();
+
   const navigate = useNavigate();
 
-  const handleSave = () => {
-    if (!domainName.trim()) {
-      setNameError("Please enter a valid domain name.");
+  const handleSave = async () => {
+    const nameErr = !domainName.trim()
+      ? "Please enter a valid domain name."
+      : "";
+    const descErr = !description.trim() ? "Please enter description." : "";
+    const graphErr =
+      !savedGraphData ||
+      !Array.isArray(savedGraphData.nodes) ||
+      savedGraphData.nodes.length === 0
+        ? "Please create and save a graph before submitting."
+        : "";
+
+    setNameError(nameErr);
+    setDescriptionError(descErr);
+    setGraphError(graphErr);
+
+    const hasErrors = !!(nameErr || descErr || graphErr);
+    if (hasErrors) return;
+
+    try {
+      const knowledgeDomain = {
+        professorId: user.id,
+        name: domainName.trim(),
+        description: description.trim(),
+        nodes: savedGraphData.nodes,
+        links: savedGraphData.links,
+      };
+
+      await KnowledgeDomainService.createKnowledgeDomain(
+        knowledgeDomain,
+        token
+      );
+      navigate("/knowledge-domain");
+    } catch (err) {
+      setGraphError(
+        err?.message
+          ? `Failed to create knowledge domain: ${err.message}`
+          : "Failed to create knowledge domain."
+      );
     }
-
-    if (!description.trim()) {
-      setDescriptionError("Please enter description.");
-    }
-
-    if (!savedGraphData || savedGraphData.nodes.length === 0) {
-      setGraphError("Please create and save a graph before submitting.");
-    }
-
-    if (nameError === "" || descriptionError === "" || graphError === "") {
-      return;
-    }
-
-    setNameError("");
-    setDescriptionError("");
-    setGraphError("");
-
-    const decodedToken = getDecodedToken();
-
-    const knowledgeDomain = {
-      professorId: decodedToken.id,
-      name: domainName,
-      description: description,
-      nodes: savedGraphData.nodes,
-      links: savedGraphData.links,
-    };
-
-    const response =
-      KnowledgeDomainService.createKnowledgeDomain(knowledgeDomain);
-    // Reset forme (opciono)
-    navigate("/knowledge-domain");
   };
 
   const handleGraphSave = (graphData) => {
     setSavedGraphData(graphData);
+    setGraphError("");
   };
 
   return (
@@ -68,7 +76,10 @@ const CreateKnowledgeDomain = () => {
           label="Domain Name*"
           placeholder="Insert name"
           value={domainName}
-          onChange={(e) => setDomainName(e.target.value)}
+          onChange={(e) => {
+            setDomainName(e.target.value);
+            if (nameError) setNameError("");
+          }}
           error={nameError}
           inputStyle={{ height: "40px" }}
         />
@@ -77,7 +88,10 @@ const CreateKnowledgeDomain = () => {
           label="Description*"
           placeholder="Insert description"
           value={description}
-          onChange={(e) => setDescription(e.target.value)}
+          onChange={(e) => {
+            setDescription(e.target.value);
+            if (descriptionError) setDescriptionError("");
+          }}
           error={descriptionError}
           inputStyle={{ height: "40px" }}
         />

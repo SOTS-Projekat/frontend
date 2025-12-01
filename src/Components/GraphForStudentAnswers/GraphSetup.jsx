@@ -6,7 +6,6 @@ const GraphSetup = () => {
   const svgRef = useRef();
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
-  
 
   const handleSvgClick = (event) => {
     const coords = d3.pointer(event);
@@ -50,7 +49,7 @@ const GraphSetup = () => {
                   ) {
                     newEdges.push({
                       id: edgeId,
-                      name: "", // Start with an empty label
+                      name: "",
                       source: newNode.id,
                       target: existingNode.id,
                     });
@@ -71,7 +70,6 @@ const GraphSetup = () => {
   const handleNodeClick = (event, node) => {
     event.stopPropagation(); //  Koristimo kada zelimo da nas event ne ide dalje uz dom stablo (u ovom slucaju, da se ne okine dvaput - u svg i u node)
     console.log("Node clicked:", node); //  Tehnicki, child clicked
-    //event.preventDefault();
     const newLabel = prompt("Rename current node:", node.label);
     if (newLabel && newLabel !== node.label) {
       setNodes((prevNodes) =>
@@ -134,8 +132,7 @@ const GraphSetup = () => {
   const updateGraph = () => {
     const svg = d3.select(svgRef.current);
 
-    // Define arrow marker (only once)
-    svg.select("defs").remove(); // Clear previous definitions
+    svg.select("defs").remove();
     const defs = svg.append("defs");
     defs
       .append("marker")

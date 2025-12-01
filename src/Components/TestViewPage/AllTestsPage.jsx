@@ -2,19 +2,19 @@ import { useEffect, useState } from "react";
 import classes from "./AllTestsPage.module.scss";
 import TestService from "../Services/TestService";
 import AllTests from "./AllTests";
-import { useNavigate } from "react-router";
+import { useNavigate, useLocation } from "react-router";
 import Button from "../UI/Button";
-import { getDecodedToken } from "../../hooks/authUtils";
+import { useSession } from "../../hooks/useSession";
 
 const AllTestsPage = () => {
   const [tests, setTests] = useState([]);
   const navigate = useNavigate();
-  const decodedToken = getDecodedToken();
-  console.log(decodedToken);
+  const location = useLocation();
+  const { token, user } = useSession();
 
   const fetchTests = async () => {
     try {
-      const data = await TestService.getAllTests();
+      const data = await TestService.getAllTests(user.role, user.id, token);
       setTests(data);
       console.log(data);
     } catch (error) {
@@ -24,7 +24,7 @@ const AllTestsPage = () => {
 
   const deleteTest = async (id) => {
     try {
-      await TestService.deleteTest(id);
+      await TestService.deleteTest(id, token);
 
       setTests((prevState) => {
         return prevState.filter((test) => test.id !== id);
@@ -38,12 +38,12 @@ const AllTestsPage = () => {
 
   useEffect(() => {
     fetchTests();
-  }, []);
+  }, [location.key, user?.id, user?.role, token]);
 
   return (
     <div className={classes.container}>
       <div className={classes.actions}>
-        {decodedToken.role === "PROFESSOR" && (
+        {user.role === "PROFESSOR" && (
           <Button
             text="Add test"
             onClick={() => navigate("create")}
@@ -54,7 +54,7 @@ const AllTestsPage = () => {
       <AllTests
         data={tests}
         onDelete={deleteTest}
-        onExport={TestService.exportTest}
+        onExport={(id) => TestService.exportTest(id, token)}
       />
     </div>
   );

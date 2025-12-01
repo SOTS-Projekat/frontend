@@ -1,18 +1,18 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { FiLogOut } from "react-icons/fi"; // Import icon
 import classes from "./Navigation.module.scss";
-import { getDecodedToken } from "../../hooks/authUtils";
+import { useSession } from "../../hooks/useSession";
 
 export default function Navigation() {
   const navigate = useNavigate();
 
-  const decodedToken = getDecodedToken();
-  const username = decodedToken?.sub;
-  const role = decodedToken?.role;
+  const { logout, user } = useSession();
+
+  const username = user?.sub;
+  const role = user?.role;
 
   const handleLogout = () => {
-    //localStorage.setItem("session", JSON.stringify(""));
-    localStorage.removeItem("token");
+    logout();
     navigate("/");
   };
 

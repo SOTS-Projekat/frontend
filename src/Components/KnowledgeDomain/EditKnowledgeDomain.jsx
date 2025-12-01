@@ -5,6 +5,7 @@ import KnowledgeDomainService from "../Services/KnowledgeDomainService";
 import NetworkGraph from "../NetworkGraph/NetworkGraph";
 import InputField from "../UI/InputField";
 import Button from "../UI/Button";
+import { useSession } from "../../hooks/useSession";
 
 const EditKnowledgeDomain = () => {
   const { id } = useParams();
@@ -17,11 +18,13 @@ const EditKnowledgeDomain = () => {
   const [graphError, setGraphError] = useState("");
   const navigate = useNavigate();
 
+  const { token } = useSession();
+
   useEffect(() => {
     //  Ovo se poziva 2 puta, pogledati posle da li je mozda greska
     const fetchDomainData = async () => {
       try {
-        const response = await KnowledgeDomainService.getOneById(id);
+        const response = await KnowledgeDomainService.getOneById(id, token);
         console.log(response);
         setDomainName(response.name);
         setDescription(response.description);
@@ -31,14 +34,15 @@ const EditKnowledgeDomain = () => {
         });
 
         const secondGraphResponse =
-          await KnowledgeDomainService.getRealKnowledgeDomainById(id);
+          await KnowledgeDomainService.getRealKnowledgeDomainById(id, token);
         console.log(secondGraphResponse);
         setGraphDataTwo({
           nodes: secondGraphResponse.nodes || [],
           links: secondGraphResponse.links || [],
         });
       } catch (error) {
-        setError("No real knowledge space for selected space.");
+        setGraphError("No real knowledge space for selected space.");
+        console.error(error);
       }
     };
 
@@ -74,7 +78,11 @@ const EditKnowledgeDomain = () => {
     };
 
     try {
-      await KnowledgeDomainService.updateKnowledgeDomain(id, updatedDomain);
+      await KnowledgeDomainService.updateKnowledgeDomain(
+        id,
+        updatedDomain,
+        token
+      );
       navigate("/knowledge-domain");
     } catch (error) {
       setError("Error saving domain data.");

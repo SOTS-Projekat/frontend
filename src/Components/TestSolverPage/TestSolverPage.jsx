@@ -3,7 +3,7 @@ import styles from "./TestSolverPage.module.scss";
 import TestService from "../Services/TestService";
 import { useParams } from "react-router";
 import LoadingIndicator from "../UI/LoadingIndicator";
-import { getDecodedToken } from "../../hooks/authUtils";
+import { useSession } from "../../hooks/useSession";
 import Button from "../UI/Button";
 
 const TestSolverPage = () => {
@@ -13,12 +13,13 @@ const TestSolverPage = () => {
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [answers, setAnswers] = useState([]);
   const [completed, setCompleted] = useState(false);
-  const decodedToken = getDecodedToken();
+
+  const { user, token } = useSession();
 
   useEffect(() => {
     const fetchTest = async () => {
       try {
-        const fetchedTest = await TestService.getTestById(id);
+        const fetchedTest = await TestService.getTestById(id, token);
         setTestData(fetchedTest);
         setAnswers(new Array(fetchedTest.questions.length).fill(null));
         setCurrentQuestionIndex(0);
@@ -68,12 +69,15 @@ const TestSolverPage = () => {
           : null,
     }));
 
-    await TestService.solveTest({
-      testId: id,
-      userId: decodedToken.id,
-      answeredQuestions,
-      score,
-    });
+    await TestService.solveTest(
+      {
+        testId: id,
+        userId: user.id,
+        answeredQuestions,
+        score,
+      },
+      token
+    );
   };
 
   const calculateScore = () => {

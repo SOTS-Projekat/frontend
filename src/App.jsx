@@ -11,7 +11,6 @@ import KnowledgeDomainPage from "./Components/KnowledgeDomain/KnowledgeDomainPag
 import CreateKnowledgeDomain from "./Components/KnowledgeDomain/CreateKnowledgeDomain";
 import "react-toastify/dist/ReactToastify.css"; // Uvozi stilove za Toastify
 import EditKnowledgeDomain from "./Components/KnowledgeDomain/EditKnowledgeDomain";
-import RealKnowledgeDomainPage from "./Components/KnowledgeDomain/RealKnowledgeDomainPage";
 import EditRealKnowledgeDomain from "./Components/KnowledgeDomain/EditRealKnowledgeDomain";
 import HomePage from "./Components/HomePage/HomePage";
 import AllTestsPage from "./Components/TestViewPage/AllTestsPage";
