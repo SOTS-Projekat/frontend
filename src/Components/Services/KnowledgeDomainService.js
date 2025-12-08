@@ -141,6 +141,36 @@ const KnowledgeDomainService = {
       );
     }
   },
+
+  getResultsForTest: async (testId, token) => {
+    try {
+      const url = new URL(`http://localhost:8080/api/result/${testId}/results`);
+
+      const response = await fetch(url.toString(), {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.log(error);
+      throw new Error(
+        error.message || "Failed to get correct student answers."
+      );
+    }
+  },
+
 };
+
+
+
 
 export default KnowledgeDomainService;

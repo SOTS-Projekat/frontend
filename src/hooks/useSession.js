@@ -20,14 +20,17 @@ export function useSession() {
   }, []);
 
   const logout = useCallback(() => {
-    localStorage.removeItem("token");
-    setToken(null);
+    try {
+      window.localStorage.removeItem("token");
+    } catch (e) {
+      console.warn("localStorage not available, continuing logout", e);
+    } finally {
+      setToken(null);
+    }
   }, []);
-
   const isAuthenticated = !!token;
 
   const user = useMemo(() => {
-    //  Dekodiranje tokena da ne bismo morali da imamo authUtils klasu
     if (!token) return null;
     try {
       const decoded = jwtDecode(token);
