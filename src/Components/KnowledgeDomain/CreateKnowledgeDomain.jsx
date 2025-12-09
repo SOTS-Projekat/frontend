@@ -26,8 +26,8 @@ const CreateKnowledgeDomain = () => {
     const descErr = !description.trim() ? "Please enter description." : "";
     const graphErr =
       !savedGraphData ||
-      !Array.isArray(savedGraphData.nodes) ||
-      savedGraphData.nodes.length === 0
+        !Array.isArray(savedGraphData.nodes) ||
+        savedGraphData.nodes.length === 0
         ? "Please create and save a graph before submitting."
         : "";
 
