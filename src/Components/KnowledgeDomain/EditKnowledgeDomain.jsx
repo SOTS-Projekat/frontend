@@ -18,7 +18,7 @@ const EditKnowledgeDomain = () => {
   const [graphError, setGraphError] = useState("");
   const navigate = useNavigate();
 
-  const { token } = useSession();
+  const { token, user } = useSession();
 
   useEffect(() => {
     //  Ovo se poziva 2 puta, pogledati posle da li je mozda greska
@@ -136,12 +136,15 @@ const EditKnowledgeDomain = () => {
         </>
       )}
       {graphError && <div className={styles.error}>{graphError}</div>}
-      <Button
-        text="Create knowledge domain"
-        width="250px"
-        height="35px"
-        onClick={handleSave}
-      />
+
+      {user?.role === "PROFESSOR" && (
+        <Button
+          text="Save updated knowledge domain"
+          width="270px"
+          height="35px"
+          onClick={handleSave}
+        />
+      )}
     </div>
   );
 };

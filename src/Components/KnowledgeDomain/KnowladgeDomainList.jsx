@@ -1,10 +1,13 @@
 import React, { useState } from "react";
 import styles from "./KnowledgeDomainList.module.scss";
 import { useNavigate } from "react-router";
+import { useSession } from "../../hooks/useSession";
 
 const KnowledgeDomainList = ({ knowledgeDomains, onSelect }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
+
+  const { user } = useSession();
 
   const handleSearchChange = (event) => {
     setSearchTerm(event.target.value.toLowerCase());
@@ -21,7 +24,7 @@ const KnowledgeDomainList = ({ knowledgeDomains, onSelect }) => {
   const filteredDomains = knowledgeDomains.filter((domain) =>
     domain.name.toLowerCase().includes(searchTerm) && !domain.name.toLowerCase().includes("_real")
   );
-  
+
 
   return (
     <div className={styles.container}>
@@ -33,9 +36,12 @@ const KnowledgeDomainList = ({ knowledgeDomains, onSelect }) => {
           value={searchTerm}
           onChange={handleSearchChange}
         />
-        <button className={styles.createButton} onClick={handleCreate}>
-          Create New Domain
-        </button>
+
+        {user?.role === "PROFESSOR" && (
+          <button className={styles.createButton} onClick={handleCreate}>
+            Create New Domain
+          </button>
+        )}
       </div>
       {filteredDomains.length === 0 ? (
         <div className={styles.emptyMessage}>No knowledge domains found.</div>
