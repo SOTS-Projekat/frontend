@@ -1,66 +1,56 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, useMemo, useCallback } from "react";
 import * as d3 from "d3";
 import styles from "./NetworkGraph.module.scss";
 import Button from "../UI/Button";
+import { useSession } from "../../hooks/useSession";
 
-const NetworkGraph = ({
-  onSaveGraph,
-  graphData,
-  showSaveButton,
-  predictedGraphData,
-}) => {
+const WIDTH = 1000;
+const HEIGHT = 500;
+const NODE_R = 20;
+
+const toId = (v) => {
+  if (v == null) return null;
+  if (typeof v === "object") return v.id != null ? String(v.id) : null;
+  return String(v);
+};
+
+const NetworkGraph = ({ onSaveGraph, graphData, showSaveButton, predictedGraphData }) => {
+
+  const { user } = useSession();
+
   const svgRef = useRef(null);
+  const simulationRef = useRef(null);
+  const dragSourceRef = useRef(null);
+
   const [nodes, setNodes] = useState([]);
   const [links, setLinks] = useState([]);
-  const draggingSourceNode = useRef(null);
 
-  const simulation = useRef(
-    d3
-      .forceSimulation()
-      .force(
-        "link",
-        d3
-          .forceLink()
-          .id((d) => d.id)
-          .distance(180)
-      )
-      .force("charge", d3.forceManyBody().strength(-500))
-      .force("center", d3.forceCenter(500, 250))
-  ).current;
-
-  useEffect(() => {
-    simulateForceLayout(nodes, links);
-  }, [nodes, links]);
-
-  useEffect(() => {
-    if (graphData) {
-      const updatedNodes = (graphData.nodes || []).map((node) => ({
-        ...node,
-        x: Math.random() * 500,
-        y: Math.random() * 500,
-      }));
-      const updatedLinks = (graphData.links || []).map((link) => ({
-        ...link,
-        sourceNodeId: +link.sourceNode?.id,
-        targetNodeId: +link.targetNode?.id,
-      }));
-
-      setNodes(updatedNodes);
-      setLinks(updatedLinks);
-
-      simulateForceLayout(updatedNodes, updatedLinks);
+  const predictedLinkPairs = useMemo(() => {
+    const set = new Set();
+    const pls = predictedGraphData?.links ?? [];
+    for (const l of pls) {
+      const s = toId(l.sourceNodeId ?? l.source?.id ?? l.sourceNode?.id);
+      const t = toId(l.targetNodeId ?? l.target?.id ?? l.targetNode?.id);
+      if (s && t) set.add(`${s}|${t}`);
     }
-  }, [graphData]);
+    return set;
+  }, [predictedGraphData]);
 
-  const simulateForceLayout = (nodes, links) => {
+  const isDifferentFromPrediction = useCallback(
+    (link) => {
+      if (!predictedGraphData) return false;
+      return !predictedLinkPairs.has(`${link.sourceNodeId}|${link.targetNodeId}`);
+    },
+    [predictedGraphData, predictedLinkPairs]
+  );
+
+  useEffect(() => {
     const svg = d3.select(svgRef.current);
-    const width = 1000;
-    const height = 500;
+    svg.attr("viewBox", `0 0 ${WIDTH} ${HEIGHT}`);
 
-    svg.select("defs").remove();
+    svg.selectAll("*").remove();
 
     const defs = svg.append("defs");
-
     defs
       .append("marker")
       .attr("id", "arrowhead")
@@ -76,379 +66,326 @@ const NetworkGraph = ({
       .attr("stroke", "black")
       .attr("stroke-width", 1.5);
 
-    const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+    svg.append("g").attr("class", "links");
+    svg.append("g").attr("class", "link-labels");
+    svg.append("g").attr("class", "nodes");
+    svg.append("g").attr("class", "node-labels");
 
-    simulation.nodes(nodes).on("tick", () => {
-      nodes.forEach((node) => {
-        node.x = clamp(node.x, 10, width - 10);
-        node.y = clamp(node.y, 10, height - 10);
+    const sim = d3
+      .forceSimulation()
+      .force("link", d3.forceLink().id((d) => d.id).distance(180))
+      .force("charge", d3.forceManyBody().strength(-500))
+      .force("center", d3.forceCenter(WIDTH / 2, HEIGHT / 2));
+
+    simulationRef.current = sim;
+
+    return () => {
+      sim.stop();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!graphData) return;
+
+    const incomingNodes = (graphData.nodes ?? []).map((n) => ({
+      ...n,
+      id: toId(n.id ?? n.frontendId ?? crypto.randomUUID()),
+      label: n.label ?? n.name ?? "",
+    }));
+
+    const incomingLinks = (graphData.links ?? [])
+      .map((l) => {
+        const s = toId(l.sourceNodeId ?? l.source?.id ?? l.sourceNode?.id);
+        const t = toId(l.targetNodeId ?? l.target?.id ?? l.targetNode?.id);
+        if (!s || !t) return null;
+        return {
+          ...l,
+          id: toId(l.id ?? crypto.randomUUID()),
+          label: l.label ?? l.name ?? "",
+          sourceNodeId: s,
+          targetNodeId: t,
+        };
+      })
+      .filter(Boolean);
+
+    setNodes((prev) => {
+      const prevById = new Map(prev.map((p) => [String(p.id), p]));
+      return incomingNodes.map((n) => {
+        const p = prevById.get(String(n.id));
+        return p
+          ? { ...n, x: p.x, y: p.y, vx: p.vx, vy: p.vy }
+          : { ...n, x: Math.random() * WIDTH, y: Math.random() * HEIGHT };
       });
-
-      svg
-        .selectAll(".link")
-        .data(links, (d) => `${d.sourceNodeId}-${d.targetNodeId}`)
-        .join(
-          (enter) =>
-            enter
-              .append("line")
-              .attr("class", "link")
-              .attr("stroke", (d) =>
-                predictedGraphData &&
-                isLinkDifferent(d, predictedGraphData.links)
-                  ? "blue"
-                  : "black"
-              )
-              .attr("stroke-width", 2)
-              .attr("marker-end", "url(#arrowhead)")
-              .style("cursor", "pointer")
-              .on("click", (event, d) => {
-                console.log(d);
-                event.stopPropagation();
-                const newLabel = prompt("Rename the link:", d.label);
-                if (newLabel) {
-                  setLinks((prevLinks) =>
-                    prevLinks.map((link) =>
-                      link.sourceNodeId === d.sourceNodeId &&
-                      link.targetNodeId === d.targetNodeId
-                        ? { ...link, label: newLabel }
-                        : link
-                    )
-                  );
-                }
-              })
-              .on("contextmenu", (event, d) => handleRightClickLink(event, d)),
-          (update) =>
-            update
-              .attr("stroke", (d) =>
-                predictedGraphData &&
-                isLinkDifferent(d, predictedGraphData.links)
-                  ? "blue"
-                  : "black"
-              )
-              .attr("marker-end", "url(#arrowhead)"),
-          (exit) => exit.remove()
-        )
-
-        .attr("x1", (d) => {
-          const sourceNode = nodes.find((node) => node.id === d.sourceNodeId);
-          return sourceNode ? sourceNode.x : 0;
-        })
-        .attr("y1", (d) => {
-          const sourceNode = nodes.find((node) => node.id === d.sourceNodeId);
-          return sourceNode ? sourceNode.y : 0;
-        })
-        .attr("x2", (d) => {
-          const targetNode = nodes.find((node) => node.id === d.targetNodeId);
-          return targetNode ? targetNode.x : 0;
-        })
-        .attr("y2", (d) => {
-          const targetNode = nodes.find((node) => node.id === d.targetNodeId);
-          return targetNode ? targetNode.y : 0;
-        });
-
-      const predictedNodes = predictedGraphData?.nodes || [];
-
-      svg
-        .selectAll(".node")
-        .data(nodes, (d) => d.id)
-        .join(
-          (enter) =>
-            enter
-              .append("circle")
-              .attr("class", "node")
-              .attr("r", 20)
-              .attr("fill", (d) => {
-                if (d.correct === false) {
-                  return "red";
-                }
-                if (d.correct === true) {
-                  return "green";
-                }
-              })
-              .attr("stroke", "black")
-              .attr("stroke-width", 2)
-              .style("cursor", "pointer")
-              .on("mousedown", (event, d) => {
-                if (event.button === 1) {
-                  handleNodeMiddleClick(event, d);
-                }
-              })
-              .on("contextmenu", (event, d) => handleRightClickNode(event, d))
-              .call(
-                d3
-                  .drag()
-                  .on("start", (event, d) => {
-                    if (!event.active) simulation.alphaTarget(0.3).restart();
-                    d.fx = d.x;
-                    d.fy = d.y;
-                  })
-                  .on("drag", (event, d) => {
-                    d.fx = event.x;
-                    d.fy = event.y;
-                  })
-                  .on("end", (event, d) => {
-                    if (!event.active) simulation.alphaTarget(0);
-                    d.fx = null;
-                    d.fy = null;
-                  })
-              ),
-          (update) =>
-            update.attr("fill", (d) => {
-              if (d.correct === false) {
-                return "red"; // Node is incorrect
-              }
-              if (d.correct === true) {
-                return "green"; // Node is correct
-              }
-            }),
-
-          (exit) => exit.remove()
-        )
-        .attr("cx", (d) => d.x)
-        .attr("cy", (d) => d.y);
-
-      svg
-        .selectAll(".node-label")
-        .data(nodes, (d) => d.id)
-        .join(
-          (enter) =>
-            enter
-              .append("text")
-              .attr("class", "node-label")
-              .attr("text-anchor", "middle")
-              .style("font-size", "12px")
-              .style("fill", "black"),
-          (update) => update,
-          (exit) => exit.remove()
-        )
-        .attr("x", (d) => d.x)
-        .attr("y", (d) => d.y + 35)
-        .text((d) => d.label);
-
-      svg
-        .selectAll(".link-label")
-        .data(links, (d) => `${d.sourceNodeId}-${d.targetNodeId}`)
-        .join(
-          (enter) =>
-            enter
-              .append("text")
-              .attr("class", "link-label")
-              .attr("text-anchor", "middle")
-              .style("font-size", "12px")
-              .style("fill", "black"),
-          (update) => update,
-          (exit) => exit.remove()
-        )
-        .attr("x", (d) => {
-          const sourceNode = nodes.find((node) => node.id === d.sourceNodeId);
-          const targetNode = nodes.find((node) => node.id === d.targetNodeId);
-          return (sourceNode.x + targetNode.x) / 2;
-        })
-        .attr("y", (d) => {
-          const sourceNode = nodes.find((node) => node.id === d.sourceNodeId);
-          const targetNode = nodes.find((node) => node.id === d.targetNodeId);
-          return (sourceNode.y + targetNode.y) / 2 - 10;
-        })
-        .text((d) => d.label);
     });
 
-    simulation.force("link").links(
-      links.map((link) => ({
-        source: nodes.find((node) => node.id === link.sourceNodeId),
-        target: nodes.find((node) => node.id === link.targetNodeId),
+    setLinks(incomingLinks);
+  }, [graphData]);
+
+  useEffect(() => {
+    const svgEl = svgRef.current;
+    const sim = simulationRef.current;
+    if (!svgEl || !sim) return;
+
+    const svg = d3.select(svgEl);
+
+    const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+
+    const nodeById = new Map(nodes.map((n) => [String(n.id), n]));
+
+    // Build simulation links that include source/target node objects (fast for tick)
+    const simLinks = links
+      .map((l) => ({
+        ...l,
+        source: nodeById.get(String(l.sourceNodeId)),
+        target: nodeById.get(String(l.targetNodeId)),
       }))
-    );
+      .filter((l) => l.source && l.target);
 
-    simulation.alpha(1).restart();
-  };
+    // ---- LINKS 
+    const linkSel = svg
+      .select("g.links")
+      .selectAll("line.link")
+      .data(simLinks, (d) => d.id)
+      .join(
+        (enter) =>
+          enter
+            .append("line")
+            .attr("class", "link")
+            .attr("stroke-width", 2)
+            .attr("marker-end", "url(#arrowhead)")
+            .style("cursor", "pointer")
+            .on("click", (event, d) => {
+              event.preventDefault();
+              event.stopPropagation();
+              const newLabel = prompt("Rename the link:", d.label);
+              if (newLabel) {
+                setLinks((prev) => prev.map((l) => (l.id === d.id ? { ...l, label: newLabel } : l)));
+              }
+            })
+            .on("contextmenu", (event, d) => {
+              event.preventDefault();
+              event.stopPropagation();
+              const confirmDelete = window.confirm(`Are you sure you want to delete link: ${d.label}?`);
+              if (confirmDelete) setLinks((prev) => prev.filter((l) => l.id !== d.id));
+            }),
+        (update) => update,
+        (exit) => exit.remove()
+      )
+      .attr("stroke", (d) => (isDifferentFromPrediction(d) ? "blue" : "black"));
 
-  const handleSvgClick = (event) => {
-    if (event.button === 0) {
-      const coords = d3.pointer(event);
+    // ---- NODES
+    const nodeSel = svg
+      .select("g.nodes")
+      .selectAll("circle.node")
+      .data(nodes, (d) => d.id)
+      .join(
+        (enter) =>
+          enter
+            .append("circle")
+            .attr("class", "node")
+            .attr("r", NODE_R)
+            .attr("stroke", "black")
+            .attr("stroke-width", 2)
+            .style("cursor", "pointer")
+            .on("click", (event, d) => {
+              event.preventDefault();
+              event.stopPropagation();
+              const newName = prompt("Rename the node:", d.label);
+              if (newName) setNodes((prev) => prev.map((n) => (n.id === d.id ? { ...n, label: newName } : n)));
+            })
+            .on("contextmenu", (event, d) => {
+              event.preventDefault();
+              event.stopPropagation();
+              const confirmDelete = window.confirm(`Are you sure you want to delete node: ${d.label}?`);
+              if (confirmDelete) {
+                setNodes((prev) => prev.filter((n) => n.id !== d.id));
+                setLinks((prev) => prev.filter((l) => l.sourceNodeId !== d.id && l.targetNodeId !== d.id));
+              }
+            })
+            .on("mousedown", (event, d) => {
+              if (event.button !== 1) return; // srednji klik
+              event.preventDefault();
+              event.stopPropagation();
 
-      const clickedNode = nodes.find((node) => {
-        const distance = Math.sqrt(
-          Math.pow(coords[0] - node.x, 2) + Math.pow(coords[1] - node.y, 2)
-        );
-        return distance < 30;
+              dragSourceRef.current = d;
+
+              const tempLine = svg
+                .append("line")
+                .attr("class", "temp-link")
+                .attr("stroke", "gray")
+                .attr("stroke-width", 2);
+
+              const onMove = (ev) => {
+                const [x, y] = d3.pointer(ev, svgEl);
+                tempLine.attr("x1", d.x).attr("y1", d.y).attr("x2", x).attr("y2", y);
+              };
+
+              const onUp = (ev) => {
+                const [x, y] = d3.pointer(ev, svgEl);
+                const target = nodes.find((n) => Math.hypot((n.x ?? 0) - x, (n.y ?? 0) - y) < NODE_R);
+                if (target && target.id !== d.id) {
+                  const label = prompt("Enter link label:");
+                  if (label) {
+                    setLinks((prev) => [
+                      ...prev,
+                      {
+                        id: crypto.randomUUID(),
+                        label,
+                        sourceNodeId: d.id,
+                        targetNodeId: target.id,
+                      },
+                    ]);
+                  }
+                }
+                tempLine.remove();
+                svg.on("mousemove.temp", null).on("mouseup.temp", null);
+                dragSourceRef.current = null;
+              };
+
+              svg.on("mousemove.temp", onMove).on("mouseup.temp", onUp);
+            })
+            .call(
+              d3
+                .drag()
+                .on("start", (event, d) => {
+                  if (!event.active) sim.alphaTarget(0.3).restart();
+                  d.fx = d.x;
+                  d.fy = d.y;
+                })
+                .on("drag", (event, d) => {
+                  d.fx = event.x;
+                  d.fy = event.y;
+                })
+                .on("end", (event, d) => {
+                  if (!event.active) sim.alphaTarget(0);
+                  d.fx = null;
+                  d.fy = null;
+                })
+            ),
+        (update) => update,
+        (exit) => exit.remove()
+      )
+      .attr("fill", (d) => {
+        if (d.correct === true) return "green";
+        if (d.correct === false) return "red";
+        return "#ddd";
       });
 
-      if (clickedNode) {
-        console.log(clickedNode);
-        const newName = prompt("Rename the node:", clickedNode.label);
-        if (newName) {
-          setNodes((prevNodes) =>
-            prevNodes.map((node) =>
-              node.id === clickedNode.id ? { ...node, label: newName } : node
-            )
-          );
-        }
-        return;
+    const nodeLabelSel = svg
+      .select("g.node-labels")
+      .selectAll("text.node-label")
+      .data(nodes, (d) => d.id)
+      .join(
+        (enter) =>
+          enter
+            .append("text")
+            .attr("class", "node-label")
+            .attr("text-anchor", "middle")
+            .style("font-size", "12px")
+            .style("fill", "black"),
+        (update) => update,
+        (exit) => exit.remove()
+      )
+      .text((d) => d.label);
+
+    const linkLabelSel = svg
+      .select("g.link-labels")
+      .selectAll("text.link-label")
+      .data(simLinks, (d) => d.id)
+      .join(
+        (enter) =>
+          enter
+            .append("text")
+            .attr("class", "link-label")
+            .attr("text-anchor", "middle")
+            .style("font-size", "12px")
+            .style("fill", "black"),
+        (update) => update,
+        (exit) => exit.remove()
+      )
+      .text((d) => d.label);
+
+    sim.nodes(nodes).on("tick", () => {
+      for (const n of nodes) {
+        n.x = clamp(n.x ?? WIDTH / 2, NODE_R, WIDTH - NODE_R);
+        n.y = clamp(n.y ?? HEIGHT / 2, NODE_R, HEIGHT - NODE_R);
       }
 
-      createNode(coords[0], coords[1]);
-    }
-  };
+      linkSel
+        .attr("x1", (d) => d.source.x)
+        .attr("y1", (d) => d.source.y)
+        .attr("x2", (d) => d.target.x)
+        .attr("y2", (d) => d.target.y);
 
-  const createNode = (x, y) => {
-    const name = prompt("Name a new node:");
-    if (name) {
-      setNodes((prevNodes) => {
-        const newNode = {
-          id: crypto.randomUUID(),
-          label: name,
-          x: x,
-          y: y,
-        };
+      nodeSel.attr("cx", (d) => d.x).attr("cy", (d) => d.y);
 
-        return [...prevNodes, newNode];
-      });
-    }
-  };
+      nodeLabelSel.attr("x", (d) => d.x).attr("y", (d) => d.y + 35);
 
-  const handleRightClickNode = (event, node) => {
-    event.preventDefault();
-    event.stopPropagation();
-
-    const confirmDelete = window.confirm(
-      `Are you sure you want to delete node: ${node.label}?`
-    );
-    if (confirmDelete) {
-      setNodes((prevNodes) => {
-        const updatedNodes = prevNodes.filter((n) => n.id !== node.id);
-        setLinks((prevLinks) =>
-          prevLinks.filter(
-            (link) =>
-              link.sourceNodeId !== node.id && link.targetNodeId !== node.id
-          )
-        );
-
-        return updatedNodes;
-      });
-    }
-  };
-
-  const handleRightClickLink = (event, link) => {
-    event.preventDefault();
-    event.stopPropagation();
-
-    const confirmDelete = window.confirm(
-      `Are you sure you want to delete link: ${link.label}?`
-    );
-    if (confirmDelete) {
-      setLinks((prevLinks) =>
-        prevLinks.filter(
-          (l) =>
-            l.sourceNodeId !== link.sourceNodeId ||
-            l.targetNodeId !== link.targetNodeId
-        )
-      );
-    }
-  };
-
-  const handleNodeMiddleClick = (event, sourceNode) => {
-    if (event.button === 1) {
-      event.preventDefault(); // Prevent default middle mouse behavior
-      draggingSourceNode.current = sourceNode;
-
-      const svg = d3.select(svgRef.current);
-      const tempLine = svg
-        .append("line")
-        .attr("class", "temp-link")
-        .attr("stroke", "gray")
-        .attr("stroke-width", 2);
-
-      svg.on("mousemove", (event) => {
-        const [x, y] = d3.pointer(event);
-        tempLine
-          .attr("x1", sourceNode.x)
-          .attr("y1", sourceNode.y)
-          .attr("x2", x)
-          .attr("y2", y);
-      });
-
-      svg.on("mouseup", (event) => {
-        const [x, y] = d3.pointer(event);
-        console.log("SOURCE Node:", draggingSourceNode.current);
-
-        const targetNode = nodes.find(
-          (node) => Math.hypot(node.x - x, node.y - y) < 20
-        );
-
-        console.log("TARGET Node:", targetNode);
-
-        if (targetNode && targetNode.id !== draggingSourceNode.current.id) {
-          const label = prompt("Enter link label:");
-          if (label) {
-            addLink(draggingSourceNode.current.id, targetNode.id, label);
-          }
-        }
-
-        tempLine.remove();
-        svg.on("mousemove", null).on("mouseup", null);
-        draggingSourceNode.current = null;
-      });
-    }
-  };
-
-  const addLink = (sourceNodeId, targetNodeId, label = "New Link") => {
-    setLinks((prevLinks) => {
-      const newLink = {
-        label,
-        sourceNodeId,
-        targetNodeId,
-      };
-
-      return [...prevLinks, newLink];
+      linkLabelSel
+        .attr("x", (d) => (d.source.x + d.target.x) / 2)
+        .attr("y", (d) => (d.source.y + d.target.y) / 2 - 10);
     });
-  };
 
-  const isLinkDifferent = (link, predictedLinks) => {
-    return !predictedLinks.some(
-      (predictedLink) =>
-        predictedLink.sourceNodeId === link.sourceNodeId &&
-        predictedLink.targetNodeId === link.targetNodeId
-    );
+    sim.force("link").links(simLinks);
+    sim.alpha(1).restart();
+  }, [nodes, links, isDifferentFromPrediction]);
+
+  // Background click: create node (ignore clicks on existing elements)
+  const handleSvgClick = (e) => {
+    if (e.button !== 0) return;
+    const t = e.target;
+    if (t?.closest?.(".node") || t?.closest?.(".link") || t?.closest?.(".link-label") || t?.closest?.(".node-label")) {
+      return;
+    }
+    const [x, y] = d3.pointer(e.nativeEvent, svgRef.current);
+    const name = prompt("Name a new node:");
+    if (!name) return;
+
+    setNodes((prev) => [
+      ...prev,
+      {
+        id: crypto.randomUUID(),
+        label: name,
+        x,
+        y,
+      },
+    ]);
   };
 
   const handleSaveGraph = () => {
-    const transformedLinks = (links || []).map((link) => ({
-      name: link.label,
-      source: { id: link.sourceNodeId },
-      target: { id: link.targetNodeId },
+    const transformedLinks = (links ?? []).map((l) => ({
+      name: l.label,
+      source: { id: l.sourceNodeId },
+      target: { id: l.targetNodeId },
     }));
 
-    const transformedNodes = (nodes || []).map((node) => ({
-      ...node,
-      name: node.label,
+    const transformedNodes = (nodes ?? []).map((n) => ({
+      ...n,
+      name: n.label,
     }));
 
-    const currentGraphData = {
-      nodes: transformedNodes || [],
-      links: transformedLinks || [],
-    };
-    console.log("Graph Data to Save:", currentGraphData);
-
-    if (onSaveGraph) {
-      onSaveGraph(currentGraphData);
-    }
+    const currentGraphData = { nodes: transformedNodes, links: transformedLinks };
+    console.log(currentGraphData);
+    onSaveGraph?.(currentGraphData);
   };
 
   return (
     <div className={styles.wrapper}>
-      <svg ref={svgRef} className={styles.svg} onClick={handleSvgClick}></svg>
-      <div className={styles["inner-container"]}>
-        {showSaveButton && (
+      <svg ref={svgRef} className={styles.svg} onClick={handleSvgClick} />
+
+      {user?.role === "PROFESSOR" && showSaveButton && (
+        <div className={styles["inner-container"]}>
           <Button
             text="Save graph"
             width="100px"
             height="30px"
             onClick={handleSaveGraph}
           />
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
-};
+
+}
 
 export default NetworkGraph;

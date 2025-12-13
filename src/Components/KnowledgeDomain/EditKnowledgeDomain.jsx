@@ -118,7 +118,7 @@ const EditKnowledgeDomain = () => {
         />
       </div>
 
-      <h2>Pretpostavljeni prostor znanja</h2>
+      <h1>Pretpostavljeni prostor znanja</h1>
       <NetworkGraph
         onSaveGraph={handleGraphSave}
         graphData={graphDataOne}
@@ -127,7 +127,7 @@ const EditKnowledgeDomain = () => {
 
       {graphDataTwo?.nodes?.length > 0 && graphDataTwo?.links?.length > 0 && (
         <>
-          <h2>Realni prostor znanja</h2>
+          <h1>Realni prostor znanja</h1>
           <NetworkGraph
             graphData={graphDataTwo}
             predictedGraphData={graphDataOne}
