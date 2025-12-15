@@ -14,7 +14,7 @@ const toId = (v) => {
   return String(v);
 };
 
-const NetworkGraph = ({ onSaveGraph, graphData, showSaveButton, predictedGraphData }) => {
+const NetworkGraph = ({ onSaveGraph, graphData, showSaveButton, predictedGraphData, readOnly = false }) => { //  znaci default je iskljucen readOnly
 
   const { user } = useSession();
 
@@ -132,7 +132,6 @@ const NetworkGraph = ({ onSaveGraph, graphData, showSaveButton, predictedGraphDa
 
     const nodeById = new Map(nodes.map((n) => [String(n.id), n]));
 
-    // Build simulation links that include source/target node objects (fast for tick)
     const simLinks = links
       .map((l) => ({
         ...l,
@@ -155,6 +154,7 @@ const NetworkGraph = ({ onSaveGraph, graphData, showSaveButton, predictedGraphDa
             .attr("marker-end", "url(#arrowhead)")
             .style("cursor", "pointer")
             .on("click", (event, d) => {
+              if (readOnly) return; //  Dodajemo za read only
               event.preventDefault();
               event.stopPropagation();
               const newLabel = prompt("Rename the link:", d.label);
@@ -163,6 +163,7 @@ const NetworkGraph = ({ onSaveGraph, graphData, showSaveButton, predictedGraphDa
               }
             })
             .on("contextmenu", (event, d) => {
+              if (readOnly) return;
               event.preventDefault();
               event.stopPropagation();
               const confirmDelete = window.confirm(`Are you sure you want to delete link: ${d.label}?`);
@@ -188,12 +189,14 @@ const NetworkGraph = ({ onSaveGraph, graphData, showSaveButton, predictedGraphDa
             .attr("stroke-width", 2)
             .style("cursor", "pointer")
             .on("click", (event, d) => {
+              if (readOnly) return; //  Dodajemo za readOnly mod
               event.preventDefault();
               event.stopPropagation();
               const newName = prompt("Rename the node:", d.label);
               if (newName) setNodes((prev) => prev.map((n) => (n.id === d.id ? { ...n, label: newName } : n)));
             })
             .on("contextmenu", (event, d) => {
+              if (readOnly) return;
               event.preventDefault();
               event.stopPropagation();
               const confirmDelete = window.confirm(`Are you sure you want to delete node: ${d.label}?`);
@@ -203,6 +206,7 @@ const NetworkGraph = ({ onSaveGraph, graphData, showSaveButton, predictedGraphDa
               }
             })
             .on("mousedown", (event, d) => {
+              if (readOnly) return;
               if (event.button !== 1) return; // srednji klik
               event.preventDefault();
               event.stopPropagation();
@@ -332,6 +336,7 @@ const NetworkGraph = ({ onSaveGraph, graphData, showSaveButton, predictedGraphDa
 
   // Background click: create node (ignore clicks on existing elements)
   const handleSvgClick = (e) => {
+    if (readOnly) return;
     if (e.button !== 0) return;
     const t = e.target;
     if (t?.closest?.(".node") || t?.closest?.(".link") || t?.closest?.(".link-label") || t?.closest?.(".node-label")) {

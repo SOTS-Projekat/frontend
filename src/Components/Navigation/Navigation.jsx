@@ -13,7 +13,7 @@ export default function Navigation() {
 
   const handleLogout = () => {
     logout();
-    navigate("/");
+    navigate("/", { replace: true }); //  Dodamo replace, kako bi koristili react state da sam skonta kad neko nije ulogovan i da rerenderuje stranicu, navigate se vec poziva u app.jsx
   };
 
   return (

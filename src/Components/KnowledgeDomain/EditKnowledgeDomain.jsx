@@ -14,8 +14,8 @@ const EditKnowledgeDomain = () => {
   const [graphDataOne, setGraphDataOne] = useState(null);
   const [graphDataTwo, setGraphDataTwo] = useState(null);
   const [nameError, setNameError] = useState("");
-  const [descriptionError, setDescriptionError] = useState("");
   const [graphError, setGraphError] = useState("");
+  const [descriptionError, setDescriptionError] = useState("");
   const navigate = useNavigate();
 
   const { token, user } = useSession();
@@ -49,33 +49,28 @@ const EditKnowledgeDomain = () => {
     fetchDomainData();
   }, [id]);
 
+
+
   const handleSave = async () => {
+    let hasError = false; //  Fleg za ukupan error
+
     if (!domainName.trim()) {
       setNameError("Please enter a valid domain name.");
+      hasError = true;
+    } else {
+      setNameError("");
     }
 
     if (!description.trim()) {
       setDescriptionError("Please enter description.");
+      hasError = true;
+    } else {
+      setDescriptionError("");
     }
 
-    if (!graphDataOne || graphDataOne.nodes.length === 0) {
-      setGraphError("Please create and save a graph before submitting.");
-    }
+    if (hasError) return;
 
-    if (nameError === "" || descriptionError === "" || graphError === "") {
-      return;
-    }
-
-    setNameError("");
-    setDescriptionError("");
-    setGraphError("");
-
-    const updatedDomain = {
-      name: domainName,
-      description: description,
-      nodes: graphDataOne.nodes,
-      links: graphDataOne.links,
-    };
+    const updatedDomain = { name: domainName, description };
 
     try {
       await KnowledgeDomainService.updateKnowledgeDomain(
@@ -89,9 +84,7 @@ const EditKnowledgeDomain = () => {
     }
   };
 
-  const handleGraphSave = (graphDataOne) => {
-    setGraphDataOne(graphDataOne);
-  };
+
 
   return (
     <div className={styles.container}>
@@ -120,9 +113,9 @@ const EditKnowledgeDomain = () => {
 
       <h1>Pretpostavljeni prostor znanja</h1>
       <NetworkGraph
-        onSaveGraph={handleGraphSave}
         graphData={graphDataOne}
-        showSaveButton={true}
+        showSaveButton={false}
+        readOnly={true}
       />
 
       {graphDataTwo?.nodes?.length > 0 && graphDataTwo?.links?.length > 0 && (
@@ -132,10 +125,10 @@ const EditKnowledgeDomain = () => {
             graphData={graphDataTwo}
             predictedGraphData={graphDataOne}
             showSaveButton={false}
+            readOnly={true}
           />
         </>
       )}
-      {graphError && <div className={styles.error}>{graphError}</div>}
 
       {user?.role === "PROFESSOR" && (
         <Button

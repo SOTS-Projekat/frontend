@@ -5,14 +5,14 @@ import KnowledgeDomainService from "../Services/KnowledgeDomainService";
 import NetworkGraph from "../NetworkGraph/NetworkGraph";
 
 const EditRealKnowledgeDomain = () => {
-  const { id } = useParams(); 
+  const { id } = useParams();
   const [domainName, setDomainName] = useState("");
   const [description, setDescription] = useState("");
   const [savedGraphData, setSavedGraphData] = useState(null);
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  useEffect(() => { 
+  useEffect(() => {
     const fetchDomainData = async () => {
       try {
         const response = await KnowledgeDomainService.getRealKnowledgeDomainById(id);
@@ -53,7 +53,7 @@ const EditRealKnowledgeDomain = () => {
 
     try {
       await KnowledgeDomainService.updateKnowledgeDomain(id, updatedDomain);
-      navigate("/knowledge-domain"); 
+      navigate("/knowledge-domain");
     } catch (error) {
       setError("Error saving domain data.");
     }

@@ -78,6 +78,7 @@ const CreateTestPage = () => {
       const payload = {
         title,
         knowledgeDomainId: selectedKnowledgeDomain,
+        professorId: user.id,
         questions, // ensure each answer has boolean `correct`
       };
 
