@@ -3,6 +3,7 @@ import * as d3 from "d3";
 import styles from "./NetworkGraph.module.scss";
 import Button from "../UI/Button";
 import { useSession } from "../../hooks/useSession";
+import { FiSave } from "react-icons/fi";
 
 const WIDTH = 1000;
 const HEIGHT = 500;
@@ -334,7 +335,7 @@ const NetworkGraph = ({ onSaveGraph, graphData, showSaveButton, predictedGraphDa
     sim.alpha(1).restart();
   }, [nodes, links, isDifferentFromPrediction]);
 
-  // Background click: create node (ignore clicks on existing elements)
+
   const handleSvgClick = (e) => {
     if (readOnly) return;
     if (e.button !== 0) return;
@@ -380,12 +381,14 @@ const NetworkGraph = ({ onSaveGraph, graphData, showSaveButton, predictedGraphDa
 
       {user?.role === "PROFESSOR" && showSaveButton && (
         <div className={styles["inner-container"]}>
-          <Button
-            text="Save graph"
-            width="100px"
-            height="30px"
+          <button
+            type="button"
             onClick={handleSaveGraph}
-          />
+            className={styles.iconButton}
+            title="Save graph"
+          >
+            <FiSave size={20} />
+          </button>
         </div>
       )}
     </div>

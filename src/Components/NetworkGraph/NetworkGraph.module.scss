@@ -22,5 +22,15 @@
   display: flex;
   justify-content: flex-end;
   padding: 1rem;
-  border-top: 1px solid gray;
+}
+
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
 }
