@@ -1,5 +1,5 @@
 import { Outlet } from "react-router-dom";
-import Navigation from "../components/Navigation/Navigation";
+import Navigation from "../Components/Navigation/Navigation";
 import classes from "./Layout.module.scss";
 import { ToastContainer } from "react-toastify";
 
