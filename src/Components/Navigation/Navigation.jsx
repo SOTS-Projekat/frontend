@@ -13,7 +13,7 @@ export default function Navigation() {
 
   const handleLogout = () => {
     logout();
-    navigate("/", { replace: true }); //  Dodamo replace, kako bi koristili react state da sam skonta kad neko nije ulogovan i da rerenderuje stranicu, navigate se vec poziva u app.jsx
+    navigate("/", { replace: true }); //  Dodamo replace, kako bi obrisali ceo history ruta i postavili samo ovu najnoviju, na taj nacin korisnik ne moze u browseru da ode stranicu unazad i da vidi nesto sto ne treba
   };
 
   return (

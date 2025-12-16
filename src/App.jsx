@@ -13,17 +13,19 @@ import "react-toastify/dist/ReactToastify.css"; // Uvozi stilove za Toastify
 import EditKnowledgeDomain from "./Components/KnowledgeDomain/EditKnowledgeDomain";
 import HomePage from "./Components/HomePage/HomePage";
 import AllTestsPage from "./Components/TestViewPage/AllTestsPage";
-
+import { useSession } from "./hooks/useSession";
+import React from "react";
 
 function App() {
 
-  const isAuthenticated = !!localStorage.getItem("token");  //  Gledamo ovako da li je autentifikovan korisnik, posto nas hook useSession je ziv samo po komponentama, ne u celoj app.
+  const { isAuthenticated } = useSession(); //  Koristimo hook umesto direkt localStorage, kako bi react sam skontao kad je neko ulogovan
+
   console.log(isAuthenticated);
 
-  const router = createHashRouter([
+  const router = React.useMemo(() => createHashRouter([ //  useMemo kako bi se nova instanca rutera pravila samo kada se promeni isAuthenticated, odnosno ako se promeni token
     {
       path: "/",
-      element: isAuthenticated ? <Navigate to="/home" replace /> : <LoginForm />, //  Dodali smo replace, posto imamo vec navigate u navigation.jsx pa da se ne bi duplo pozivalo
+      element: isAuthenticated ? <Navigate to="/home" replace /> : <LoginForm />,
     },
     {
       path: "/register",
@@ -100,7 +102,7 @@ function App() {
 
       ],
     },
-  ]);
+  ]), [isAuthenticated]);
 
   return (
     <div>
