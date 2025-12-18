@@ -17,7 +17,7 @@ const AddQuestionModal = ({ onCreate, onClose, nodeOptionsProp }) => {
 
   const handleAddQuestion = () => {
     if (answers.length < 4 && inputAnswer.trim()) {
-      setAnswers((prevAnswers) => [
+      setAnswers((prevAnswers) => [ //  Setujemo state odnosno answers tako sto kopiramo prevAnswers i dodajemo jos jednog clana {} u niz
         ...prevAnswers,
         { answerText: inputAnswer, isCorrect: false },
       ]);

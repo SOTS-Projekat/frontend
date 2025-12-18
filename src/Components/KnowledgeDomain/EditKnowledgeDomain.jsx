@@ -5,10 +5,11 @@ import KnowledgeDomainService from "../Services/KnowledgeDomainService";
 import NetworkGraph from "../NetworkGraph/NetworkGraph";
 import InputField from "../UI/InputField";
 import Button from "../UI/Button";
-import { useSession } from "../../hooks/useSession";
+import { useSession } from "../../hooks/sessionContext";
 
 const EditKnowledgeDomain = () => {
   const { id } = useParams();
+
   const [domainName, setDomainName] = useState("");
   const [description, setDescription] = useState("");
   const [graphDataOne, setGraphDataOne] = useState(null);
@@ -21,7 +22,6 @@ const EditKnowledgeDomain = () => {
   const { token, user } = useSession();
 
   useEffect(() => {
-    //  Ovo se poziva 2 puta, pogledati posle da li je mozda greska
     const fetchDomainData = async () => {
       try {
         const response = await KnowledgeDomainService.getOneById(id, token);
@@ -118,6 +118,12 @@ const EditKnowledgeDomain = () => {
         readOnly={true}
       />
 
+      {graphError && (
+        <h2 className={styles.error}>
+          {graphError}
+        </h2>
+      )}
+
       {graphDataTwo?.nodes?.length > 0 && graphDataTwo?.links?.length > 0 && (
         <>
           <h1>Realni prostor znanja</h1>
@@ -129,6 +135,7 @@ const EditKnowledgeDomain = () => {
           />
         </>
       )}
+
 
       {user?.role === "PROFESSOR" && (
         <Button

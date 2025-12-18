@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import styles from "./TestSolverPage.module.scss";
 import TestService from "../Services/TestService";
-import { useParams } from "react-router";
+import { Navigate, useNavigate, useParams } from "react-router";
 import LoadingIndicator from "../UI/LoadingIndicator";
-import { useSession } from "../../hooks/useSession";
+import { useSession } from "../../hooks/sessionContext";
 import Button from "../UI/Button";
 
 const TestSolverPage = () => {
@@ -15,6 +15,8 @@ const TestSolverPage = () => {
   const [completed, setCompleted] = useState(false);
 
   const { user, token } = useSession();
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchTest = async () => {
@@ -78,7 +80,11 @@ const TestSolverPage = () => {
       },
       token
     );
+
+    navigate("/test", { replace: true });
+
   };
+
 
   const calculateScore = () => {
     const pointsPerQuestion = 100 / testData.questions.length;
@@ -86,7 +92,7 @@ const TestSolverPage = () => {
       return (
         score +
         (answerIndex !== null &&
-        testData.questions[i].offeredAnswers[answerIndex].correct
+          testData.questions[i].offeredAnswers[answerIndex].correct
           ? pointsPerQuestion
           : 0)
       );
@@ -96,6 +102,7 @@ const TestSolverPage = () => {
   if (!testData) {
     return <LoadingIndicator />;
   }
+
 
   const currentQuestion = testData.questions[currentQuestionIndex];
 
@@ -110,9 +117,8 @@ const TestSolverPage = () => {
               <button
                 key={index}
                 onClick={() => handleAnswerClick(index)}
-                className={`${styles.answerButton} ${
-                  selectedAnswer === index ? styles.selected : ""
-                }`}
+                className={`${styles.answerButton} ${selectedAnswer === index ? styles.selected : ""
+                  }`}
               >
                 {answer.answerText}
               </button>

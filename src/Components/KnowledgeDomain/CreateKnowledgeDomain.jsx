@@ -5,7 +5,7 @@ import { useNavigate } from "react-router";
 import NetworkGraph from "../NetworkGraph/NetworkGraph";
 import InputField from "../UI/InputField";
 import Button from "../UI/Button";
-import { useSession } from "../../hooks/useSession";
+import { useSession } from "../../hooks/sessionContext";
 
 const CreateKnowledgeDomain = () => {
   const [domainName, setDomainName] = useState("");

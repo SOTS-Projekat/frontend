@@ -11,21 +11,20 @@ import KnowledgeDomainPage from "./Components/KnowledgeDomain/KnowledgeDomainPag
 import CreateKnowledgeDomain from "./Components/KnowledgeDomain/CreateKnowledgeDomain";
 import "react-toastify/dist/ReactToastify.css"; // Uvozi stilove za Toastify
 import EditKnowledgeDomain from "./Components/KnowledgeDomain/EditKnowledgeDomain";
-import HomePage from "./Components/HomePage/HomePage";
 import AllTestsPage from "./Components/TestViewPage/AllTestsPage";
-import { useSession } from "./hooks/useSession";
+import { useSession } from "./hooks/sessionContext";
 import React from "react";
 
 function App() {
 
-  const { isAuthenticated } = useSession(); //  Koristimo hook umesto direkt localStorage, kako bi react sam skontao kad je neko ulogovan
+  function RootEntry() {
+    const { isAuthenticated } = useSession();
+    return isAuthenticated ? <Navigate to="/test" replace /> : <LoginForm />;
+  }
 
-  console.log(isAuthenticated);
-
-  const router = React.useMemo(() => createHashRouter([ //  useMemo kako bi se nova instanca rutera pravila samo kada se promeni isAuthenticated, odnosno ako se promeni token
+  const router = createHashRouter([ //  useMemo kako bi se nova instanca rutera pravila samo kada se promeni isAuthenticated, odnosno ako se promeni token
     {
-      path: "/",
-      element: isAuthenticated ? <Navigate to="/home" replace /> : <LoginForm />,
+      path: "/", element: <RootEntry />,  //  Dinamicki iskoristimo ovo da ne bismo u ruteru gledali isAuthenticated
     },
     {
       path: "/register",
@@ -35,14 +34,7 @@ function App() {
       path: "/",
       element: <Layout />,
       children: [
-        {
-          path: "home",
-          element: (
-            <ProtectedRoute>
-              <HomePage />
-            </ProtectedRoute>
-          ),
-        },
+
         {
           path: "test",
           element: (
@@ -102,7 +94,7 @@ function App() {
 
       ],
     },
-  ]), [isAuthenticated]);
+  ]);
 
   return (
     <div>

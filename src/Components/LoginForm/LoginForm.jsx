@@ -3,7 +3,7 @@ import "./LoginForm.css";
 import { FaUser, FaLock } from "react-icons/fa";
 import AuthenticationService from "../Services/AuthenticationService";
 import { useNavigate, Link } from "react-router-dom";
-import { useSession } from "../../hooks/useSession";
+import { useSession } from "../../hooks/sessionContext";
 
 const LoginForm = () => {
   const [username, setUsername] = useState("");
@@ -26,7 +26,7 @@ const LoginForm = () => {
 
       setUsername("");
       setPassword("");
-      navigate("/home");
+      navigate("/test");
     } catch (err) {
       setError(err.message ?? "Login failed");
     }

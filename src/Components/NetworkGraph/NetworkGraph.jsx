@@ -1,8 +1,7 @@
 import React, { useRef, useState, useEffect, useMemo, useCallback } from "react";
 import * as d3 from "d3";
 import styles from "./NetworkGraph.module.scss";
-import Button from "../UI/Button";
-import { useSession } from "../../hooks/useSession";
+import { useSession } from "../../hooks/sessionContext";
 import { FiSave } from "react-icons/fi";
 
 const WIDTH = 1000;

@@ -4,7 +4,7 @@ import styles from "./StudentTestPage.module.scss"; // Importujemo stilove za st
 import { useParams } from "react-router";
 import LoadingIndicator from "../UI/LoadingIndicator";
 import ResultService from "../Services/ResultService";
-import { useSession } from "../../hooks/useSession";
+import { useSession } from "../../hooks/sessionContext";
 
 const StudentTestPage = () => {
   const { id } = useParams();

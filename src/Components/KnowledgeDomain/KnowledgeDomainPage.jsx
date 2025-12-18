@@ -2,16 +2,12 @@ import React, { useEffect, useState } from "react";
 import KnowledgeDomainList from "./KnowladgeDomainList";
 import KnowledgeDomainService from "../Services/KnowledgeDomainService";
 import styles from "./KnowledgeDomainPage.module.scss";
-import { useSession } from "../../hooks/useSession";
+import { useSession } from "../../hooks/sessionContext";
 
 const KnowledgeDomainPage = () => {
   const [knowledgeDomains, setKnowledgeDomains] = useState([]);
 
   const { user, token } = useSession();
-
-  const handleSelectDomain = (id) => {
-    console.log(`Selected domain ID: ${id}`);
-  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -43,7 +39,6 @@ const KnowledgeDomainPage = () => {
     <div className={styles.container}>
       <KnowledgeDomainList
         knowledgeDomains={knowledgeDomains}
-        onSelect={handleSelectDomain}
       />
     </div>
   );

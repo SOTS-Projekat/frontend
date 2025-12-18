@@ -9,7 +9,7 @@ import DropdownList from "../UI/DropdownList";
 import KnowledgeDomainService from "../Services/KnowledgeDomainService";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router";
-import { useSession } from "../../hooks/useSession";
+import { useSession } from "../../hooks/sessionContext";
 
 const CreateTestPage = () => {
   const navigate = useNavigate();
@@ -73,7 +73,7 @@ const CreateTestPage = () => {
     );
   };
 
-  const handleCreateTest = () => {
+  const handleCreateTest = async () => {
     if (questions.length !== 0 && title !== "") {
       const payload = {
         title,
@@ -84,7 +84,7 @@ const CreateTestPage = () => {
 
       console.log("CreateTest payload:", payload);
 
-      TestService.createTest(payload, token);
+      await TestService.createTest(payload, token);
 
       toast.success("Test created successfully");
       navigate("/test");

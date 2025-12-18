@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import styles from "./KnowledgeDomainList.module.scss";
 import { useNavigate } from "react-router";
-import { useSession } from "../../hooks/useSession";
+import { useSession } from "../../hooks/sessionContext";
 
-const KnowledgeDomainList = ({ knowledgeDomains, onSelect }) => {
+const KnowledgeDomainList = ({ knowledgeDomains }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
 
@@ -13,7 +13,7 @@ const KnowledgeDomainList = ({ knowledgeDomains, onSelect }) => {
     setSearchTerm(event.target.value.toLowerCase());
   };
 
-  const handleCreate = (event) => {
+  const handleCreate = () => {
     navigate("create");
   };
 

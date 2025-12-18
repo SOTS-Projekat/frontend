@@ -4,7 +4,7 @@ import TestService from "../Services/TestService";
 import AllTests from "./AllTests";
 import { useNavigate, useLocation } from "react-router";
 import Button from "../UI/Button";
-import { useSession } from "../../hooks/useSession";
+import { useSession } from "../../hooks/sessionContext";
 
 const AllTestsPage = () => {
   const [tests, setTests] = useState([]);
@@ -38,7 +38,7 @@ const AllTestsPage = () => {
 
   useEffect(() => {
     fetchTests();
-  }, [location.key, user?.id, user?.role, token]);
+  }, [location.key, user?.id, user?.role, token]);  //  Ne smemo da stavimo ovde tests, posto ce biti infinite loop
 
   return (
     <div className={classes.container}>

@@ -1,10 +1,9 @@
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import { FiLogOut } from "react-icons/fi"; // Import icon
 import classes from "./Navigation.module.scss";
-import { useSession } from "../../hooks/useSession";
+import { useSession } from "../../hooks/sessionContext";
 
 export default function Navigation() {
-  const navigate = useNavigate();
 
   const { logout, user } = useSession();
 
@@ -13,7 +12,7 @@ export default function Navigation() {
 
   const handleLogout = () => {
     logout();
-    navigate("/", { replace: true }); //  Dodamo replace, kako bi obrisali ceo history ruta i postavili samo ovu najnoviju, na taj nacin korisnik ne moze u browseru da ode stranicu unazad i da vidi nesto sto ne treba
+    //navigate("/", { replace: true }); Izbacujemo ovo posto u ruteru automatski navigiramo u odnosu isAuthenticated
   };
 
   return (
@@ -24,13 +23,7 @@ export default function Navigation() {
       </div>
       <nav className={classes.nav}>
         <ul>
-          <NavLink
-            to="home"
-            className={({ isActive }) => (isActive ? classes.active : "")}
-            end
-          >
-            Home
-          </NavLink>
+
           <NavLink
             to="test"
             className={({ isActive }) => (isActive ? classes.active : "")}

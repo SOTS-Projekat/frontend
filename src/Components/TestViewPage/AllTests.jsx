@@ -3,7 +3,7 @@ import classes from "./AllTests.module.scss";
 import DeleteModal from "./DeleteModal";
 import KnowledgeDomainService from "../Services/KnowledgeDomainService";
 import NetworkGraph from "../NetworkGraph/NetworkGraph";
-import { useSession } from "../../hooks/useSession";
+import { useSession } from "../../hooks/sessionContext";
 import { useNavigate } from "react-router";
 
 
