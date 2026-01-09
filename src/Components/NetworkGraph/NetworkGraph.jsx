@@ -14,17 +14,41 @@ const toId = (v) => {
   return String(v);
 };
 
-const NetworkGraph = ({ onSaveGraph, graphData, showSaveButton, predictedGraphData, readOnly = false }) => { //  znaci default je iskljucen readOnly
-
+export default function NetworkGraph({
+  onSaveGraph,
+  graphData,
+  showSaveButton,
+  predictedGraphData,
+  readOnly = false,
+}) {
   const { user } = useSession();
 
   const svgRef = useRef(null);
-  const simulationRef = useRef(null);
+
+  // D3 instance refs (ne želimo state za ovo)
   const dragSourceRef = useRef(null);
+  const simRef = useRef(null);
+
+  const selRef = useRef({
+    linkSel: null,
+    nodeSel: null,
+    nodeLabelSel: null,
+    linkLabelSel: null,
+  });
+
+  // “latest” refs da tick/handleri ne hvataju stale vrednosti
+  const nodesRef = useRef([]);
+  const linksRef = useRef([]);
+  const readOnlyRef = useRef(readOnly);
+
+  useEffect(() => {
+    readOnlyRef.current = readOnly;
+  }, [readOnly]);
 
   const [nodes, setNodes] = useState([]);
   const [links, setLinks] = useState([]);
 
+  // predicted pairs
   const predictedLinkPairs = useMemo(() => {
     const set = new Set();
     const pls = predictedGraphData?.links ?? [];
@@ -36,20 +60,125 @@ const NetworkGraph = ({ onSaveGraph, graphData, showSaveButton, predictedGraphDa
     return set;
   }, [predictedGraphData]);
 
-  const isDifferentFromPrediction = useCallback(
-    (link) => {
+  const isDifferentRef = useRef(() => false);
+  useEffect(() => {
+    isDifferentRef.current = (link) => {
       if (!predictedGraphData) return false;
       return !predictedLinkPairs.has(`${link.sourceNodeId}|${link.targetNodeId}`);
-    },
-    [predictedGraphData, predictedLinkPairs]
-  );
+    };
+  }, [predictedGraphData, predictedLinkPairs]);
 
+  // --- Stable handleri (ne zavise od nodes/links da ne rebajnduješ stalno)
+  const onLinkClick = useCallback((event, d) => {
+    if (readOnlyRef.current) return;
+    event.preventDefault();
+    event.stopPropagation();
+    const newLabel = prompt("Rename the link:", d.label);
+    if (newLabel) {
+      setLinks((prev) => prev.map((l) => (l.id === d.id ? { ...l, label: newLabel } : l)));
+    }
+  }, []);
+
+  const onLinkContext = useCallback((event, d) => {
+    if (readOnlyRef.current) return;
+    event.preventDefault();
+    event.stopPropagation();
+    const ok = window.confirm(`Are you sure you want to delete link: ${d.label}?`);
+    if (ok) setLinks((prev) => prev.filter((l) => l.id !== d.id));
+  }, []);
+
+  const onNodeClick = useCallback((event, d) => {
+    if (readOnlyRef.current) return;
+    event.preventDefault();
+    event.stopPropagation();
+    const newName = prompt("Rename the node:", d.label);
+    if (newName) {
+      setNodes((prev) => prev.map((n) => (n.id === d.id ? { ...n, label: newName } : n)));
+    }
+  }, []);
+
+  const onNodeContext = useCallback((event, d) => {
+    if (readOnlyRef.current) return;
+    event.preventDefault();
+    event.stopPropagation();
+    const ok = window.confirm(`Are you sure you want to delete node: ${d.label}?`);
+    if (!ok) return;
+
+    setNodes((prev) => prev.filter((n) => n.id !== d.id));
+    setLinks((prev) => prev.filter((l) => l.sourceNodeId !== d.id && l.targetNodeId !== d.id));
+  }, []);
+
+  const onNodeMouseDown = useCallback((event, d) => {
+    if (readOnlyRef.current) return;
+    if (event.button !== 1) return; // middle click
+    event.preventDefault();
+    event.stopPropagation();
+
+    const svgEl = svgRef.current;
+    if (!svgEl) return;
+
+    dragSourceRef.current = d;
+
+    const svg = d3.select(svgEl);
+
+    const tempLine = svg
+      .append("line")
+      .attr("class", "temp-link")
+      .attr("stroke", "gray")
+      .attr("stroke-width", 2);
+
+    const onMove = (ev) => {
+      const [x, y] = d3.pointer(ev, svgEl);
+      tempLine
+        .attr("x1", d.x)
+        .attr("y1", d.y)
+        .attr("x2", x)
+        .attr("y2", y);
+    };
+
+    const onUp = (ev) => {
+      const [x, y] = d3.pointer(ev, svgEl);
+
+      // koristi latest nodes iz ref-a (da ne bude stale)
+      const allNodes = nodesRef.current ?? [];
+      const target = allNodes.find(
+        (n) => Math.hypot((n.x ?? 0) - x, (n.y ?? 0) - y) < NODE_R
+      );
+
+      if (target && target.id !== d.id) {
+        const label = prompt("Enter link label:");
+        if (label) {
+          setLinks((prev) => [
+            ...prev,
+            {
+              id: crypto.randomUUID(),
+              label,
+              sourceNodeId: d.id,
+              targetNodeId: target.id,
+            },
+          ]);
+        }
+      }
+
+      tempLine.remove();
+      svg.on("mousemove.temp", null).on("mouseup.temp", null);
+      dragSourceRef.current = null;
+    };
+
+    // namespaced eventovi da ih lako skineš
+    svg.on("mousemove.temp", onMove).on("mouseup.temp", onUp);
+  }, []);
+
+
+  // --- INIT (jednom)
   useEffect(() => {
-    const svg = d3.select(svgRef.current);
+    const svgEl = svgRef.current;
+    if (!svgEl) return;
+
+    const svg = d3.select(svgEl);
     svg.attr("viewBox", `0 0 ${WIDTH} ${HEIGHT}`);
 
-    svg.selectAll("*").remove();
-
+    // defs (arrowhead) — napravi jednom
     const defs = svg.append("defs");
     defs
       .append("marker")
@@ -66,24 +195,56 @@ const NetworkGraph = ({ onSaveGraph, graphData, showSaveButton, predictedGraphDa
       .attr("stroke", "black")
       .attr("stroke-width", 1.5);
 
+    // groups — napravi jednom
     svg.append("g").attr("class", "links");
     svg.append("g").attr("class", "link-labels");
     svg.append("g").attr("class", "nodes");
     svg.append("g").attr("class", "node-labels");
 
+    // simulation — jednom
     const sim = d3
       .forceSimulation()
       .force("link", d3.forceLink().id((d) => d.id).distance(180))
       .force("charge", d3.forceManyBody().strength(-500))
       .force("center", d3.forceCenter(WIDTH / 2, HEIGHT / 2));
 
-    simulationRef.current = sim;
+    simRef.current = sim;
+
+    const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+
+    // tick koristi ref-ove (uvek latest)
+    sim.on("tick", () => {
+      const { linkSel, nodeSel, nodeLabelSel, linkLabelSel } = selRef.current;
+      if (!linkSel || !nodeSel || !nodeLabelSel || !linkLabelSel) return;
+
+      const nn = nodesRef.current;
+      for (const n of nn) {
+        n.x = clamp(n.x ?? WIDTH / 2, NODE_R, WIDTH - NODE_R);
+        n.y = clamp(n.y ?? HEIGHT / 2, NODE_R, HEIGHT - NODE_R);
+      }
+
+      linkSel
+        .attr("x1", (d) => d.source.x)
+        .attr("y1", (d) => d.source.y)
+        .attr("x2", (d) => d.target.x)
+        .attr("y2", (d) => d.target.y);
+
+      nodeSel.attr("cx", (d) => d.x).attr("cy", (d) => d.y);
+
+      nodeLabelSel.attr("x", (d) => d.x).attr("y", (d) => d.y + 35);
+
+      linkLabelSel
+        .attr("x", (d) => (d.source.x + d.target.x) / 2)
+        .attr("y", (d) => (d.source.y + d.target.y) / 2 - 10);
+    });
 
     return () => {
       sim.stop();
+      simRef.current = null;
     };
   }, []);
 
+  // --- Mapiraj incoming graphData -> nodes/links state
   useEffect(() => {
     if (!graphData) return;
 
@@ -108,6 +269,7 @@ const NetworkGraph = ({ onSaveGraph, graphData, showSaveButton, predictedGraphDa
       })
       .filter(Boolean);
 
+    // sačuvaj pozicije ako postoje
     setNodes((prev) => {
       const prevById = new Map(prev.map((p) => [String(p.id), p]));
       return incomingNodes.map((n) => {
@@ -121,17 +283,21 @@ const NetworkGraph = ({ onSaveGraph, graphData, showSaveButton, predictedGraphDa
     setLinks(incomingLinks);
   }, [graphData]);
 
+  // --- UPDATE: data join (kad se nodes/links promene)
   useEffect(() => {
     const svgEl = svgRef.current;
-    const sim = simulationRef.current;
+    const sim = simRef.current;
     if (!svgEl || !sim) return;
+
+    // update “latest” refs za tick
+    nodesRef.current = nodes;
+    linksRef.current = links;
 
     const svg = d3.select(svgEl);
 
-    const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
-
     const nodeById = new Map(nodes.map((n) => [String(n.id), n]));
 
+    // simLinks: source/target su objekti, ne id string
     const simLinks = links
       .map((l) => ({
         ...l,
@@ -140,7 +306,7 @@ const NetworkGraph = ({ onSaveGraph, graphData, showSaveButton, predictedGraphDa
       }))
       .filter((l) => l.source && l.target);
 
-    // ---- LINKS 
+    // LINKS join
     const linkSel = svg
       .select("g.links")
       .selectAll("line.link")
@@ -153,28 +319,14 @@ const NetworkGraph = ({ onSaveGraph, graphData, showSaveButton, predictedGraphDa
             .attr("stroke-width", 2)
             .attr("marker-end", "url(#arrowhead)")
             .style("cursor", "pointer")
-            .on("click", (event, d) => {
-              if (readOnly) return; //  Dodajemo za read only
-              event.preventDefault();
-              event.stopPropagation();
-              const newLabel = prompt("Rename the link:", d.label);
-              if (newLabel) {
-                setLinks((prev) => prev.map((l) => (l.id === d.id ? { ...l, label: newLabel } : l)));
-              }
-            })
-            .on("contextmenu", (event, d) => {
-              if (readOnly) return;
-              event.preventDefault();
-              event.stopPropagation();
-              const confirmDelete = window.confirm(`Are you sure you want to delete link: ${d.label}?`);
-              if (confirmDelete) setLinks((prev) => prev.filter((l) => l.id !== d.id));
-            }),
+            .on("click", onLinkClick)
+            .on("contextmenu", onLinkContext),
         (update) => update,
         (exit) => exit.remove()
       )
-      .attr("stroke", (d) => (isDifferentFromPrediction(d) ? "blue" : "black"));
+      .attr("stroke", (d) => (isDifferentRef.current(d) ? "blue" : "black"));
 
-    // ---- NODES
+    // NODES join
     const nodeSel = svg
       .select("g.nodes")
       .selectAll("circle.node")
@@ -188,66 +340,9 @@ const NetworkGraph = ({ onSaveGraph, graphData, showSaveButton, predictedGraphDa
             .attr("stroke", "black")
             .attr("stroke-width", 2)
             .style("cursor", "pointer")
-            .on("click", (event, d) => {
-              if (readOnly) return; //  Dodajemo za readOnly mod
-              event.preventDefault();
-              event.stopPropagation();
-              const newName = prompt("Rename the node:", d.label);
-              if (newName) setNodes((prev) => prev.map((n) => (n.id === d.id ? { ...n, label: newName } : n)));
-            })
-            .on("contextmenu", (event, d) => {
-              if (readOnly) return;
-              event.preventDefault();
-              event.stopPropagation();
-              const confirmDelete = window.confirm(`Are you sure you want to delete node: ${d.label}?`);
-              if (confirmDelete) {
-                setNodes((prev) => prev.filter((n) => n.id !== d.id));
-                setLinks((prev) => prev.filter((l) => l.sourceNodeId !== d.id && l.targetNodeId !== d.id));
-              }
-            })
-            .on("mousedown", (event, d) => {
-              if (readOnly) return;
-              if (event.button !== 1) return; // srednji klik
-              event.preventDefault();
-              event.stopPropagation();
-
-              dragSourceRef.current = d;
-
-              const tempLine = svg
-                .append("line")
-                .attr("class", "temp-link")
-                .attr("stroke", "gray")
-                .attr("stroke-width", 2);
-
-              const onMove = (ev) => {
-                const [x, y] = d3.pointer(ev, svgEl);
-                tempLine.attr("x1", d.x).attr("y1", d.y).attr("x2", x).attr("y2", y);
-              };
-
-              const onUp = (ev) => {
-                const [x, y] = d3.pointer(ev, svgEl);
-                const target = nodes.find((n) => Math.hypot((n.x ?? 0) - x, (n.y ?? 0) - y) < NODE_R);
-                if (target && target.id !== d.id) {
-                  const label = prompt("Enter link label:");
-                  if (label) {
-                    setLinks((prev) => [
-                      ...prev,
-                      {
-                        id: crypto.randomUUID(),
-                        label,
-                        sourceNodeId: d.id,
-                        targetNodeId: target.id,
-                      },
-                    ]);
-                  }
-                }
-                tempLine.remove();
-                svg.on("mousemove.temp", null).on("mouseup.temp", null);
-                dragSourceRef.current = null;
-              };
-
-              svg.on("mousemove.temp", onMove).on("mouseup.temp", onUp);
-            })
+            .on("click", onNodeClick)
+            .on("contextmenu", onNodeContext)
+            .on("mousedown", onNodeMouseDown)
             .call(
               d3
                 .drag()
@@ -275,6 +370,7 @@ const NetworkGraph = ({ onSaveGraph, graphData, showSaveButton, predictedGraphDa
         return "#ddd";
       });
 
+    // Node labels join
     const nodeLabelSel = svg
       .select("g.node-labels")
       .selectAll("text.node-label")
@@ -292,6 +388,7 @@ const NetworkGraph = ({ onSaveGraph, graphData, showSaveButton, predictedGraphDa
       )
       .text((d) => d.label);
 
+    // Link labels join
     const linkLabelSel = svg
       .select("g.link-labels")
       .selectAll("text.link-label")
@@ -309,51 +406,37 @@ const NetworkGraph = ({ onSaveGraph, graphData, showSaveButton, predictedGraphDa
       )
       .text((d) => d.label);
 
-    sim.nodes(nodes).on("tick", () => {
-      for (const n of nodes) {
-        n.x = clamp(n.x ?? WIDTH / 2, NODE_R, WIDTH - NODE_R);
-        n.y = clamp(n.y ?? HEIGHT / 2, NODE_R, HEIGHT - NODE_R);
-      }
+    // sačuvaj selekcije za tick
+    selRef.current = { linkSel, nodeSel, nodeLabelSel, linkLabelSel };
 
-      linkSel
-        .attr("x1", (d) => d.source.x)
-        .attr("y1", (d) => d.source.y)
-        .attr("x2", (d) => d.target.x)
-        .attr("y2", (d) => d.target.y);
-
-      nodeSel.attr("cx", (d) => d.x).attr("cy", (d) => d.y);
-
-      nodeLabelSel.attr("x", (d) => d.x).attr("y", (d) => d.y + 35);
-
-      linkLabelSel
-        .attr("x", (d) => (d.source.x + d.target.x) / 2)
-        .attr("y", (d) => (d.source.y + d.target.y) / 2 - 10);
-    });
-
+    // update sim data + restart
+    sim.nodes(nodes);
     sim.force("link").links(simLinks);
     sim.alpha(1).restart();
-  }, [nodes, links, isDifferentFromPrediction]);
+  }, [nodes, links, onLinkClick, onLinkContext, onNodeClick, onNodeContext, onNodeMouseDown]);
 
-
+  // click na pozadinu SVG-a (dodavanje noda)
   const handleSvgClick = (e) => {
     if (readOnly) return;
     if (e.button !== 0) return;
+
     const t = e.target;
-    if (t?.closest?.(".node") || t?.closest?.(".link") || t?.closest?.(".link-label") || t?.closest?.(".node-label")) {
+    if (
+      t?.closest?.(".node") ||
+      t?.closest?.(".link") ||
+      t?.closest?.(".link-label") ||
+      t?.closest?.(".node-label")
+    ) {
       return;
     }
+
     const [x, y] = d3.pointer(e.nativeEvent, svgRef.current);
     const name = prompt("Name a new node:");
     if (!name) return;
 
     setNodes((prev) => [
       ...prev,
-      {
-        id: crypto.randomUUID(),
-        label: name,
-        x,
-        y,
-      },
+      { id: crypto.randomUUID(), label: name, x, y },
     ]);
   };
 
@@ -369,9 +452,7 @@ const NetworkGraph = ({ onSaveGraph, graphData, showSaveButton, predictedGraphDa
       name: n.label,
     }));
 
-    const currentGraphData = { nodes: transformedNodes, links: transformedLinks };
-    console.log(currentGraphData);
-    onSaveGraph?.(currentGraphData);
+    onSaveGraph?.({ nodes: transformedNodes, links: transformedLinks });
   };
 
   return (
@@ -392,7 +473,4 @@ const NetworkGraph = ({ onSaveGraph, graphData, showSaveButton, predictedGraphDa
       )}
     </div>
   );
-
 }
-
-export default NetworkGraph;

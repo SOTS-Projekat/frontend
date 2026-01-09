@@ -29,6 +29,7 @@
     text-align: center;
     width: 16.66%;
   }
+
   td {
     padding: 5px 15px;
     text-align: center;
@@ -37,6 +38,7 @@
 
   tbody {
     font-weight: 500;
+
     tr {
       border-bottom: 1px solid #ddd;
 
@@ -51,10 +53,12 @@
 
     td {
       color: #333;
+
       .buttons-container {
         display: flex;
         align-items: center;
         justify-content: center;
+
         button {
           margin-right: 5px;
           padding: 7px 12px;
@@ -82,6 +86,7 @@
   }
 
   @media (max-width: 768px) {
+
     th,
     td {
       padding: 10px 12px;

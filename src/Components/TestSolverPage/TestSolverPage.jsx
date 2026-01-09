@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import styles from "./TestSolverPage.module.scss";
 import TestService from "../Services/TestService";
-import { Navigate, useNavigate, useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import LoadingIndicator from "../UI/LoadingIndicator";
 import { useSession } from "../../hooks/sessionContext";
 import Button from "../UI/Button";

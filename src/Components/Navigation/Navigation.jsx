@@ -30,12 +30,14 @@ export default function Navigation() {
           >
             Test
           </NavLink>
-          <NavLink
-            to="knowledge-domain"
-            className={({ isActive }) => (isActive ? classes.active : "")}
-          >
-            Knowledge Domain
-          </NavLink>
+          {role === "PROFESSOR" && (
+            <NavLink
+              to="knowledge-domain"
+              className={({ isActive }) => (isActive ? classes.active : "")}
+            >
+              Knowledge Domain
+            </NavLink>
+          )}
           <div>
             <div className={classes.background} />
             <div className={classes.footer} />
